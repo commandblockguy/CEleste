@@ -15,6 +15,7 @@
 struct vec2i room = {0, 0};
 
 tinystl::vector<Object*> objects = {};
+Cloud clouds[NUM_CLOUDS];
 
 int freeze=0;
 int shake=0;
@@ -45,6 +46,13 @@ int seconds;
 int minutes;
 
 void _init() {
+    for(auto & cloud : clouds) {
+        cloud.x=rnd(128);
+        cloud.y=rnd(128);
+        cloud.spd=1+rnd(4);
+        cloud.w=32+rnd(32);
+    }
+
     title_screen();
 }
 
@@ -86,16 +94,6 @@ bool is_title() {
 /////////////
 
 // todo
-// clouds = {}
-// for i=0,16 do
-//     add(clouds,{
-//         x=rnd(128),
-//         y=rnd(128),
-//         spd=1+rnd(4),
-//         w=32+rnd(32)
-//     })
-// }
-
 // particles = {}
 // for i=0,24 do
 //     add(particles,{
@@ -1303,19 +1301,16 @@ void _draw() {
     rectfill(0,0,128,128,bg_col);
 
     // clouds
-    // todo
-    /*
     if (not is_title()) {
-        foreach(clouds, function(c)
-            c.x += c.spd
-            rectfill(c.x,c.y,c.x+c.w,c.y+4+(1-c.w/64)*12,new_bg and 14 or 1)
+        for(Cloud &c : clouds) {
+            c.x += c.spd;
+            rectfill(c.x,c.y,c.x+c.w,c.y+4+(1-c.w/64)*12,new_bg ? 14 : 1);
             if (c.x > 128 ) {
-                c.x = -c.w
-                c.y=rnd(128-8)
+                c.x = -c.w;
+                c.y=rnd(128-8);
             }
-        })
+        }
     }
-     */
 
     // draw bg terrain
     map(room.x * 16,room.y * 16,0,0,16,16,2);
@@ -1362,13 +1357,6 @@ void _draw() {
         if (p.t <= 0 ) { del(dead_particles,p) }
         rectfill(p.x-p.t/5,p.y-p.t/5,p.x+p.t/5,p.y+p.t/5,14+p.t%2)
     })*/
-   
-    // draw outside of the screen for screenshake
-    // todo: undo
-//    rectfill(-5,-5,-1,133,0);
-//    rectfill(-5,-5,133,-1,0);
-//    rectfill(-5,128,133,133,0);
-//    rectfill(128,-5,133,133,0);
    
     // credits
     if (is_title()) {

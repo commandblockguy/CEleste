@@ -79,7 +79,7 @@ void print_int(int n, int l) {
 
 void rectfill(int x0, int y0, int x1, int y1, uint8_t col) {
     gfx_SetColor(col);
-    gfx_FillRectangle(SCREEN_X(x0), SCREEN_Y(y0), abs(x1 - x0), abs(x1 - y1));
+    gfx_FillRectangle(SCREEN_X(x0), SCREEN_Y(y0), x1 - x0, y1 - y0);
 }
 
 void camera() {

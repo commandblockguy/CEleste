@@ -13,6 +13,14 @@ struct vec2f {
 };
 
 #define NUM_FRUITS 29
+#define NUM_CLOUDS 16
+
+struct Cloud {
+    float x;
+    float y;
+    float spd;
+    float w;
+};
 
 enum type {
     player_spawn = 1,
