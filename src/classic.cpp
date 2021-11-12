@@ -1057,7 +1057,7 @@ void Object::move(float ox, float oy) {
 void Object::move_x(float amount, float start) {
     if(this->solids) {
         int step = sign(amount);
-        for(int i = start; i < fabs(amount); i++) {
+        for(float i = start; i <= fabs(amount); i++) {
             if(not this->is_solid(step, 0)) {
                 this->x += step;
             } else {
@@ -1074,7 +1074,7 @@ void Object::move_x(float amount, float start) {
 void Object::move_y(float amount) {
     if(this->solids) {
         int step = sign(amount);
-        for(int i = 0; i < fabs(amount); i++) {
+        for(float i = 0; i <= fabs(amount); i++) {
             if(not this->is_solid(0, step)) {
                 this->y += step;
             } else {
