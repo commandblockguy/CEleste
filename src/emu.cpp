@@ -11,6 +11,9 @@
 #define BASE_X ((LCD_WIDTH - 128) / 2)
 #define BASE_Y ((LCD_HEIGHT - 128) / 2)
 
+#define SCREEN_X(x0) ((x0) + offset.x)
+#define SCREEN_Y(y0) ((y0) + offset.y)
+
 static struct {int x; int y;} offset = {BASE_X, BASE_Y};
 
 static int gameFrame = 0;
@@ -57,11 +60,11 @@ void print(const char *str) {
 
 void print(const char *str, int x, int y, uint8_t col) {
     gfx_SetTextFGColor(col);
-    gfx_PrintStringXY(str, x + offset.x, y + offset.y);
+    gfx_PrintStringXY(str, SCREEN_X(x), SCREEN_Y(y));
 }
 
 void print_int(int n, int x, int y, uint8_t col) {
-    gfx_SetTextXY(x + offset.x, y + offset.y);
+    gfx_SetTextXY(SCREEN_X(x), SCREEN_Y(y));
     gfx_SetColor(col);
     print_int(n);
 }
@@ -76,7 +79,7 @@ void print_int(int n, int l) {
 
 void rectfill(int x0, int y0, int x1, int y1, uint8_t col) {
     gfx_SetColor(col);
-    gfx_FillRectangle(offset.x + x0, offset.y + y0, abs(x1 - x0), abs(x1 - y1));
+    gfx_FillRectangle(SCREEN_X(x0), SCREEN_Y(y0), abs(x1 - x0), abs(x1 - y1));
 }
 
 void camera() {
