@@ -49,6 +49,8 @@ public:
 
     int dir; // todo: platform only
 
+    struct {float x; float y; float size; } hair[5];
+
     struct vec2f spd;
     struct vec2f rem;
 
@@ -121,6 +123,10 @@ bool is_title();
 void load_room(uint8_t x, uint8_t y);
 void restart_room();
 void next_room();
+void create_hair(Object *obj);
+void set_hair_color(int djump);
+void draw_hair(Object *obj, float facing);
+void unset_hair_color();
 Object *init_object(enum type type, int x, int y);
 void destroy_object(Object *obj);
 void draw_time(int x, int y);

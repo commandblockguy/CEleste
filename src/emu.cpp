@@ -82,6 +82,11 @@ void rectfill(int x0, int y0, int x1, int y1, uint8_t col) {
     gfx_FillRectangle(SCREEN_X(x0), SCREEN_Y(y0), x1 - x0, y1 - y0);
 }
 
+void circfill(int x, int y, int radius, int col) {
+    gfx_SetColor(col);
+    gfx_FillCircle(SCREEN_X(x), SCREEN_Y(y), radius);
+}
+
 void camera() {
     camera(0, 0);
 }

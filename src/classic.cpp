@@ -126,8 +126,7 @@ Player::Player(int x, int y) : Object(x, y) {
     this->spr_off=0;
     this->was_on_ground=false;
     this->type = player;
-    // todo
-//    create_hair(this);
+    create_hair(this);
 }
 
 void Player::update() {
@@ -336,47 +335,45 @@ void Player::draw() {
         this->spd.x=0;
     }
 
-    // todo
-    //set_hair_color(this->djump);
-    //draw_hair(this,this->flip.x ? -1 : 1);
+    set_hair_color(this->djump);
+    draw_hair(this,this->flip.x ? -1 : 1);
     spr(this->sprite,this->x,this->y,1,1,this->flip.x,this->flip.y);
-    //unset_hair_color();
+    unset_hair_color();
 }
 
-/*
-
-psfx=function(num)
+void psfx(int num) {
  if (sfx_timer<=0 ) {
-  sfx(num)
+  //sfx(num)
  }
 }
 
-create_hair=function(obj)
-    obj.hair={}
-    for i=0,4 do
-        add(obj.hair,{x=obj.x,y=obj.y,size=max(1,min(2,3-i))})
+void create_hair(Object *obj) {
+    for(int i = 0; i <= 4; i++) {
+        obj->hair[i].x = obj->x;
+        obj->hair[i].y = obj->y;
+        obj->hair[i].size = max(1, min(2, 3 - i));
     }
 }
 
-set_hair_color=function(djump)
-    pal(8,(djump==1 and 8 or djump==2 and (7+flr((frames/3)%2)*4) or 12))
+void set_hair_color(int djump) {
+    // todo: floor?
+    pal(8, (djump == 1 ? 8 : djump == 2 ? (7 + ((frames / 3) % 2) * 4) : 12));
 }
 
-draw_hair=function(obj,facing)
-    local last={x=obj.x+4-facing*2,y=obj.y+(btn(k_down) and 4 or 3)}
-    foreach(obj.hair,function(h)
-        h.x+=(last.x-h.x)/1.5
-        h.y+=(last.y+0.5-h.y)/1.5
-        circfill(h.x,h.y,h.size,8)
-        last=h
-    })
+void draw_hair(Object *obj, float facing) {
+    struct vec2f last = {.x=obj->x + 4 - facing * 2, .y=obj->y + (btn(k_down) ? 4 : 3)};
+    for(int i = 0; i < 5; i++) {
+        obj->hair[i].x += (last.x - obj->hair[i].x) / 1.5;
+        obj->hair[i].y += (last.y + 0.5 - obj->hair[i].y) / 1.5;
+        circfill(obj->hair[i].x, obj->hair[i].y, obj->hair[i].size, 8);
+        last.x = obj->hair[i].x;
+        last.y = obj->hair[i].y;
+    }
 }
 
-unset_hair_color=function()
-    pal(8,8)
+void unset_hair_color() {
+    pal(8, 8);
 }
-
- */
 
 PlayerSpawn::PlayerSpawn(int x, int y) : Object (x, y) {
     //sfx(4);
@@ -388,8 +385,7 @@ PlayerSpawn::PlayerSpawn(int x, int y) : Object (x, y) {
     this->delay=0;
     this->solids=false;
     this->type = player_spawn;
-    // todo
-    //create_hair(this);
+    create_hair(this);
 }
 
 void PlayerSpawn::update() {
@@ -427,11 +423,10 @@ void PlayerSpawn::update() {
 }
 
 void PlayerSpawn::draw() {
-    // todo
-    //set_hair_color(max_djump);
-    //draw_hair(this,1);
+    set_hair_color(max_djump);
+    draw_hair(this,1);
     spr(this->sprite,this->x,this->y,1,1,this->flip.x,this->flip.y);
-    //unset_hair_color();
+    unset_hair_color();
 }
 
 /*
@@ -487,7 +482,7 @@ spring = {
 add(types,spring)
 
 function break_spring(obj)
-    obj.hide_in=15
+    obj->hide_in=15
 }
 
 balloon = {
@@ -571,12 +566,12 @@ fall_floor = {
 add(types,fall_floor)
 
 function break_fall_floor(obj)
- if (obj.state==0 ) {
+ if (obj->state==0 ) {
      psfx(15)
-        obj.state=1
-        obj.delay=15//how long until it falls
-        init_object(smoke,obj.x,obj.y)
-        local hit=obj.collide(spring,0,-1)
+        obj->state=1
+        obj->delay=15//how long until it falls
+        init_object(smoke,obj->x,obj->y)
+        local hit=obj->collide(spring,0,-1)
         if (hit!=nullptr ) {
             break_spring(hit)
         }
@@ -1112,8 +1107,8 @@ void Player::kill() {
 //    for(int dir=0; dir <= 7; dir++) {
 //        float angle=(dir/8.0);
 //        add(dead_particles,{
-//            x=obj.x+4,
-//            y=obj.y+4,
+//            x=obj->x+4,
+//            y=obj->y+4,
 //            t=10,
 //            spd={
 //                x=sin(angle)*3,
