@@ -34,6 +34,6 @@ void pal(int a, int b);
 
 bool btn(uint8_t index);
 
-float rnd(float max);
-float min(float a, float b);
-float max(float a, float b);
+int rnd(int max);
+int min(int a, int b);
+int max(int a, int b);

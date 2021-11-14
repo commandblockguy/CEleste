@@ -144,15 +144,15 @@ bool btn(uint8_t index) {
     return kb_IsDown(keys[index]);
 }
 
-float rnd(float max) {
-    return rand() / (RAND_MAX + 1.) * max;
+int rnd(int max) {
+    return randInt(0, max);
 }
 
-float min(float a, float b) {
+int min(int a, int b) {
     return a <= b ? a : b;
 }
 
-float max(float a, float b) {
+int max(int a, int b) {
     return a >= b ? a : b;
 }
 

@@ -2,14 +2,19 @@
 
 #include <cstdint>
 
+typedef int subpixel;
+#define SUBPIXEL_SCALE 256
+#define SP(x) ((x) * SUBPIXEL_SCALE)
+#define PIX(x) ((int)((x) / SUBPIXEL_SCALE))
+
 struct vec2i {
     int x;
     int y;
 };
 
-struct vec2f {
-    float x;
-    float y;
+struct vec2s {
+    subpixel x;
+    subpixel y;
 };
 
 #define NUM_FRUITS 29
@@ -51,11 +56,11 @@ public:
 
     struct {int x; int y; int size; } hair[5];
 
-    struct vec2f spd;
-    struct vec2f rem;
+    struct vec2s spd;
+    struct vec2s rem;
 
     virtual void update() {}
-    virtual void move(float ox, float oy);
+    virtual void move(subpixel ox, subpixel oy);
     virtual void draw();
 
     bool is_solid(int ox, int oy);
@@ -75,8 +80,8 @@ public:
     int djump;
     int dash_time;
     int dash_effect_time;
-    struct vec2f dash_target;
-    struct vec2f dash_accel;
+    struct vec2s dash_target;
+    struct vec2s dash_accel;
     int spr_off;
     bool was_on_ground;
 
@@ -135,10 +140,10 @@ bool solid_at(int x, int y, int w, int h);
 bool ice_at(int x, int y, int w, int h);
 bool tile_flag_at(int x, int y, int w, int h, uint8_t flag);
 uint8_t tile_at(int x, int y);
-bool spikes_at(int x, int y, int w, int h, float xspd, float yspd);
+bool spikes_at(int x, int y, int w, int h, subpixel xspd, subpixel yspd);
 int clamp(int val, int a, int b);
-float appr(float val, float target, float amount);
-int sign(float v);
+int appr(int val, int target, int amount);
+int sign(int v);
 bool maybe();
 
 extern int freeze;

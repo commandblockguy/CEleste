@@ -183,20 +183,20 @@ void Player::update() {
     } else {
 
         // move
-        float maxrun = 1;
-        float accel = 0.6;
-        float deccel = 0.15;
+        subpixel maxrun = SP(1);
+        subpixel accel = SP(0.6);
+        subpixel deccel = SP(0.15);
 
         if(not on_ground) {
-            accel = 0.4;
+            accel = SP(0.4);
         } else if(on_ice) {
-            accel = 0.05;
+            accel = SP(0.05);
             if(input == (this->flip.x ? -1 : 1)) {
-                accel = 0.05;
+                accel = SP(0.05);
             }
         }
 
-        if(fabs(this->spd.x) > maxrun) {
+        if(abs(this->spd.x) > maxrun) {
             this->spd.x = appr(this->spd.x, sign(this->spd.x) * maxrun, deccel);
         } else {
             this->spd.x = appr(this->spd.x, input * maxrun, accel);
@@ -208,16 +208,16 @@ void Player::update() {
         }
 
         // gravity
-        float maxfall = 2;
-        float gravity = 0.21;
+        subpixel maxfall = SP(2);
+        subpixel gravity = SP(0.21);
 
-        if(fabs(this->spd.y) <= 0.15) {
-            gravity *= 0.5;
+        if(abs(this->spd.y) <= SP(0.15)) {
+            gravity = SP(0.21 * 0.5);
         }
 
         // wall slide
         if(input != 0 and this->is_solid(input, 0) and not this->is_ice(input, 0)) {
-            maxfall = 0.4;
+            maxfall = SP(0.4);
             if(rnd(10) < 2) {
                 new Smoke(this->x + input * 6, this->y);
             }
@@ -234,7 +234,7 @@ void Player::update() {
                 //psfx(1);
                 this->jbuffer = 0;
                 this->grace = 0;
-                this->spd.y = -2;
+                this->spd.y = SP(-2);
                 new Smoke(this->x, this->y + 4);
             } else {
                 // wall jump
@@ -242,8 +242,8 @@ void Player::update() {
                 if(wall_dir != 0) {
                     //psfx(2);
                     this->jbuffer = 0;
-                    this->spd.y = -2;
-                    this->spd.x = -wall_dir * (maxrun + 1);
+                    this->spd.y = SP(-2);
+                    this->spd.x = -wall_dir * (maxrun + SP(1));
                     if(not this->is_ice(wall_dir * 3, 0)) {
                         new Smoke(this->x + wall_dir * 6, this->y);
                     }
@@ -252,8 +252,8 @@ void Player::update() {
         }
 
         // dash
-        float d_full = 5;
-        float d_half = d_full * 0.70710678118;
+        subpixel d_full = SP(5);
+        subpixel d_half = SP(5 * 0.70710678118);
 
         if(this->djump > 0 and dash) {
             new Smoke(this->x, this->y);
@@ -274,27 +274,27 @@ void Player::update() {
                 this->spd.x = 0;
                 this->spd.y = v_input * d_full;
             } else {
-                this->spd.x = (this->flip.x ? -1 : 1);
+                this->spd.x = SP(this->flip.x ? -1 : 1);
                 this->spd.y = 0;
             }
 
             //psfx(3);
             freeze = 2;
             shake = 6;
-            this->dash_target.x = 2 * sign(this->spd.x);
-            this->dash_target.y = 2 * sign(this->spd.y);
-            this->dash_accel.x = 1.5;
-            this->dash_accel.y = 1.5;
+            this->dash_target.x = SP(2) * sign(this->spd.x);
+            this->dash_target.y = SP(2) * sign(this->spd.y);
+            this->dash_accel.x = SP(1.5);
+            this->dash_accel.y = SP(1.5);
 
             if(this->spd.y < 0) {
-                this->dash_target.y *= .75;
+                dash_target.y = dash_target.y * 3 / 4;
             }
 
             if(this->spd.y != 0) {
-                this->dash_accel.x *= 0.70710678118;
+                this->dash_accel.x = SP(1.5 * 0.70710678118);
             }
             if(this->spd.x != 0) {
-                this->dash_accel.y *= 0.70710678118;
+                this->dash_accel.y = SP(15 * 0.70710678118);
             }
         } else if(dash and this->djump <= 0) {
             //psfx(9);
@@ -380,7 +380,7 @@ PlayerSpawn::PlayerSpawn(int x, int y) : Object (x, y) {
     this->sprite=3;
     this->target = {.x=this->x,.y=this->y};
     this->y=128;
-    this->spd.y=-4;
+    this->spd.y=SP(-4);
     this->state=0;
     this->delay=0;
     this->solids=false;
@@ -397,7 +397,7 @@ void PlayerSpawn::update() {
         }
         // falling
     } else if(this->state == 1) {
-        this->spd.y += 0.5;
+        this->spd.y += SP(0.5);
         if(this->spd.y > 0 and this->delay > 0) {
             this->spd.y = 0;
             this->delay -= 1;
@@ -580,8 +580,8 @@ function break_fall_floor(obj)
 */
 Smoke::Smoke(int x, int y) : Object(x, y) {
     this->sprite=29;
-    this->spd.y=-0.1;
-    this->spd.x=0.3+rnd(0.2);
+    this->spd.y=SP(-0.1);
+    this->spd.x=SP(0.3)+rnd(SP(0.2));
     this->x+=-1+rnd(2);
     this->y+=-1+rnd(2);
     this->flip.x=maybe();
@@ -1042,18 +1042,18 @@ bool Object::check(enum type type, int ox, int oy) {
     return this->collide(type, ox, oy) != nullptr;
 }
 
-void Object::move(float ox, float oy) {
-    float amount;
+void Object::move(subpixel ox, subpixel oy) {
+    int amount;
     // [x] get move amount
     this->rem.x += ox;
-    amount = floor(this->rem.x + 0.5);
-    this->rem.x -= amount;
+    amount = PIX(rem.x + SP(0.5));
+    this->rem.x -= SP(amount);
     this->move_x(amount, 0);
 
     // [y] get move amount
     this->rem.y += oy;
-    amount = floor(this->rem.y + 0.5);
-    this->rem.y -= amount;
+    amount = PIX(rem.y + SP(0.5));
+    this->rem.y -= SP(amount);
     this->move_y(amount);
 }
 
@@ -1405,13 +1405,13 @@ int clamp(int val, int a, int b) {
     return max(a, min(b, val));
 }
 
-float appr(float val, float target, float amount) {
+int appr(int val, int target, int amount) {
  return val > target 
      ? max(val - amount, target)
      : min(val + amount, target);
 }
 
-int sign(float v) {
+int sign(int v) {
     return v>0 ? 1 : v<0 ? -1 : 0;
 }
 
@@ -1442,9 +1442,9 @@ uint8_t tile_at(int x, int y) {
  return mget(room.x * 16 + x, room.y * 16 + y);
 }
 
-bool spikes_at(int x, int y, int w, int h, float xspd, float yspd) {
-    for(int i = max(0, x / 8); i < min(15, (x + w - 1) / 8.0); i++) {
-        for(int j = max(0, y / 8); j < min(15, (y + h - 1) / 8.0); j++) {
+bool spikes_at(int x, int y, int w, int h, subpixel xspd, subpixel yspd) {
+    for(int i = max(0, x / 8); i <= min(15, (x + w - 1) / 8); i++) {
+        for(int j = max(0, y / 8); j <= min(15, (y + h - 1) / 8); j++) {
             uint8_t tile = tile_at(i, j);
             if(tile == 17 and ((y + h - 1) % 8 >= 6 or y + h == j * 8 + 8) and yspd >= 0) {
                 return true;
