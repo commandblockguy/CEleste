@@ -360,8 +360,8 @@ void set_hair_color(int djump) {
     pal(8, (djump == 1 ? 8 : djump == 2 ? (7 + ((frames / 3) % 2) * 4) : 12));
 }
 
-void draw_hair(Object *obj, float facing) {
-    struct vec2f last = {.x=obj->x + 4 - facing * 2, .y=obj->y + (btn(k_down) ? 4 : 3)};
+void draw_hair(Object *obj, int facing) {
+    struct vec2i last = {.x=obj->x + 4 - facing * 2, .y=obj->y + (btn(k_down) ? 4 : 3)};
     for(int i = 0; i < 5; i++) {
         obj->hair[i].x += (last.x - obj->hair[i].x) / 1.5;
         obj->hair[i].y += (last.y + 0.5 - obj->hair[i].y) / 1.5;
@@ -1054,10 +1054,10 @@ void Object::move(float ox, float oy) {
     this->move_y(amount);
 }
 
-void Object::move_x(float amount, float start) {
+void Object::move_x(int amount, int start) {
     if(this->solids) {
         int step = sign(amount);
-        for(float i = start; i <= fabs(amount); i++) {
+        for(int i = start; i <= abs(amount); i++) {
             if(not this->is_solid(step, 0)) {
                 this->x += step;
             } else {
@@ -1071,10 +1071,10 @@ void Object::move_x(float amount, float start) {
     }
 }
 
-void Object::move_y(float amount) {
+void Object::move_y(int amount) {
     if(this->solids) {
         int step = sign(amount);
-        for(float i = 0; i <= fabs(amount); i++) {
+        for(int i = 0; i <= abs(amount); i++) {
             if(not this->is_solid(0, step)) {
                 this->y += step;
             } else {

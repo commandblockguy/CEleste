@@ -16,10 +16,10 @@ struct vec2f {
 #define NUM_CLOUDS 16
 
 struct Cloud {
-    float x;
-    float y;
-    float spd;
-    float w;
+    int x;
+    int y;
+    int spd;
+    int w;
 };
 
 enum type {
@@ -42,8 +42,8 @@ public:
     bool solids;
     float sprite;
     struct {bool x; bool y;} flip;
-    float x;
-    float y;
+    int x;
+    int y;
     struct {int x; int y; int w; int h;} hitbox;
     uint8_t type;
 
@@ -62,8 +62,8 @@ public:
     bool is_ice(int ox, int oy);
     Object *collide(enum type type, int ox, int oy);
     bool check(enum type type, int ox,int oy);
-    void move_x(float amount, float start);
-    void move_y(float amount);
+    void move_x(int amount, int start);
+    void move_y(int amount);
 };
 
 class Player : public Object {
@@ -89,7 +89,7 @@ public:
 
 class PlayerSpawn : public Object {
 public:
-    struct vec2f target;
+    struct vec2i target;
     int state;
     int delay;
 
@@ -125,7 +125,7 @@ void restart_room();
 void next_room();
 void create_hair(Object *obj);
 void set_hair_color(int djump);
-void draw_hair(Object *obj, float facing);
+void draw_hair(Object *obj, int facing);
 void unset_hair_color();
 Object *init_object(enum type type, int x, int y);
 void destroy_object(Object *obj);
