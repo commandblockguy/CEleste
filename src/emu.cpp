@@ -5,6 +5,7 @@
 #include <keypadc.h>
 #include <debug.h>
 #include <tice.h>
+#include <cstring>
 
 #include "gfx/gfx.h"
 
@@ -29,6 +30,9 @@ const uint8_t mask[] = {
         0, 0, 19, 19, 19, 19, 0, 0, 0, 2, 2, 2, 2, 2, 2, 2
 };
 
+static uint8_t pal_map[16] = {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15};
+static bool default_pal = true;
+
 void init() {
     _init();
 }
@@ -50,8 +54,9 @@ void update() {
     }
 }
 
-void render() {
-
+void color(uint8_t c) {
+    gfx_SetColor(pal_map[c]);
+    gfx_SetTextFGColor(pal_map[c]);
 }
 
 void print(const char *str) {
@@ -59,13 +64,13 @@ void print(const char *str) {
 }
 
 void print(const char *str, int x, int y, uint8_t col) {
-    gfx_SetTextFGColor(col);
+    color(col);
     gfx_PrintStringXY(str, SCREEN_X(x), SCREEN_Y(y));
 }
 
 void print_int(int n, int x, int y, uint8_t col) {
     gfx_SetTextXY(SCREEN_X(x), SCREEN_Y(y));
-    gfx_SetColor(col);
+    color(col);
     print_int(n);
 }
 
@@ -78,12 +83,12 @@ void print_int(int n, int l) {
 }
 
 void rectfill(int x0, int y0, int x1, int y1, uint8_t col) {
-    gfx_SetColor(col);
+    color(col);
     gfx_FillRectangle(SCREEN_X(x0), SCREEN_Y(y0), x1 - x0, y1 - y0);
 }
 
 void circfill(int x, int y, int radius, int col) {
-    gfx_SetColor(col);
+    color(col);
     gfx_FillCircle(SCREEN_X(x), SCREEN_Y(y), radius);
 }
 
@@ -122,23 +127,32 @@ void spr(uint8_t n, int x, int y, uint8_t w, uint8_t h, bool flip_x, bool flip_y
     gfx_TempSprite(temp, 8, 8);
     if(flip_x) {
         gfx_FlipSpriteY(sprite, temp);
-        gfx_TransparentSprite(temp, x + offset.x, y + offset.y);
-        return;
     } else if(flip_y) {
         gfx_FlipSpriteX(sprite, temp);
-        gfx_TransparentSprite(temp, x + offset.x, y + offset.y);
-        return;
+    } else {
+        memcpy(&temp_data, sprite, sizeof temp_data);
+    }
+    if(!default_pal) {
+        for(uint8_t i = 0; i < 64; i++) {
+            // this is probably slow
+            temp->data[i] = pal_map[temp->data[i]];
+        }
     }
     // todo: both?
-    gfx_TransparentSprite(sprite, x + offset.x, y + offset.y);
+    gfx_TransparentSprite(temp, x + offset.x, y + offset.y);
 }
 
 void pal() {
-
+    for(uint8_t i = 0; i < 16; i++) {
+        pal_map[i] = i;
+    }
+    default_pal = true;
 }
 
-void pal(int a, int b) {
-
+void pal(int c0, int c1) {
+    pal_map[c0] = c1;
+    // todo: this is probably sufficient?
+    default_pal = c0 == c1;
 }
 
 
