@@ -304,7 +304,7 @@ void Player::update() {
     }
 
     // animation
-    this->spr_off += 0.25;
+    this->spr_off += 1;
     if(not on_ground) {
         if(this->is_solid(input, 0)) {
             this->sprite = 5;
@@ -318,7 +318,7 @@ void Player::update() {
     } else if((this->spd.x == 0) or (not btn(k_left) and not btn(k_right))) {
         this->sprite = 1;
     } else {
-        this->sprite = 1 + (int)this->spr_off % 4;
+        this->sprite = 1 + (this->spr_off / 4) % 4;
     }
 
     // next level
@@ -590,7 +590,10 @@ Smoke::Smoke(int x, int y) : Object(x, y) {
     this->type = smoke;
 }
 void Smoke::update() {
-    this->sprite+=0.2;
+    if(++sprite_timer == 5) {
+        sprite_timer = 0;
+        sprite++;
+    }
     if (this->sprite>=32) {
         destroy_object(this);
     }
@@ -1371,7 +1374,7 @@ void _draw() {
             }
         }
         if (p!=nullptr) {
-            int diff=min(24,40-fabs(p->x+4-64));
+            int diff=min(24,40-abs(p->x+4-64));
             rectfill(0,0,diff,128,0);
             rectfill(128-diff,0,128,128,0);
         }
@@ -1398,7 +1401,7 @@ void draw_time(int x, int y) {
 // helper functions //
 //////////////////////
 
-float clamp(float val, float a, float b) {
+int clamp(int val, int a, int b) {
     return max(a, min(b, val));
 }
 

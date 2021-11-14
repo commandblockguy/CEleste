@@ -40,7 +40,7 @@ public:
 
     bool collideable;
     bool solids;
-    float sprite;
+    uint8_t sprite;
     struct {bool x; bool y;} flip;
     int x;
     int y;
@@ -49,7 +49,7 @@ public:
 
     int dir; // todo: platform only
 
-    struct {float x; float y; float size; } hair[5];
+    struct {int x; int y; int size; } hair[5];
 
     struct vec2f spd;
     struct vec2f rem;
@@ -77,7 +77,7 @@ public:
     int dash_effect_time;
     struct vec2f dash_target;
     struct vec2f dash_accel;
-    float spr_off;
+    int spr_off;
     bool was_on_ground;
 
     Player(int x, int y);
@@ -101,6 +101,7 @@ public:
 class Smoke : public Object {
 public:
     Smoke(int x, int y);
+    int sprite_timer{0};
     void update() override;
 };
 
@@ -135,7 +136,7 @@ bool ice_at(int x, int y, int w, int h);
 bool tile_flag_at(int x, int y, int w, int h, uint8_t flag);
 uint8_t tile_at(int x, int y);
 bool spikes_at(int x, int y, int w, int h, float xspd, float yspd);
-float clamp(float val, float a, float b);
+int clamp(int val, int a, int b);
 float appr(float val, float target, float amount);
 int sign(float v);
 bool maybe();
