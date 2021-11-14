@@ -2,7 +2,6 @@
 
 #include <TINYSTL/vector.h>
 #include <debug.h>
-#include <cmath>
 #include <cstdlib>
 #include "emu.h"
 
@@ -341,11 +340,11 @@ void Player::draw() {
     unset_hair_color();
 }
 
-void psfx(int num) {
-    if(sfx_timer <= 0) {
-        //sfx(num)
-    }
-}
+//void psfx(int num) {
+//    if(sfx_timer <= 0) {
+//        //sfx(num)
+//    }
+//}
 
 void create_hair(Object *obj) {
     for(int i = 0; i <= 4; i++) {
@@ -600,30 +599,28 @@ void Smoke::update() {
     }
 }
 
-/*
-fruit={
-    tile=26,
-    if_not_fruit=true,
-    init=function(this) 
-        start=y
-        off=0
-    },
-    update=function(this)
-     local hit=collide(player,0,0)
-        if (hit!=nullptr ) {
-         hit.djump=max_djump
-            sfx_timer=20
-            sfx(13)
-            got_fruit[level_index()] = true
-            init_object(lifeup,x,y)
-            destroy_object(this)
-        }
-        off+=1
-        y=start+sin(off/40)*2.5
-    }
+Fruit::Fruit(int x, int y) : Object(x, y) {
+    start = y;
+    off = 0;
+    sprite = 26;
 }
-add(types,fruit)
 
+void Fruit::update() {
+    auto hit = (Player *) collide(player, 0, 0);
+    if(hit != nullptr) {
+        hit->djump = max_djump;
+        sfx_timer = 20;
+        //sfx(13);
+        got_fruit[level_index()] = true;
+        new LifeUp(x, y);
+        destroy_object(this);
+    }
+    off += 1;
+    y = start;
+    // todo: y = start + sin(off / 40) * 5 / 2;
+}
+
+/*
 fly_fruit={
     tile=28,
     if_not_fruit=true,
@@ -684,57 +681,60 @@ fly_fruit={
 }
 add(types,fly_fruit)
 
-lif (eup = ) {
-    init=function(this)
-        spd.y=-0.25
-        duration=30
-        x-=2
-        y-=4
-        flash=0
-        solids=false
-    },
-    update=function(this)
-        duration-=1
-        if (duration<= 0 ) {
-            destroy_object(this)
-        }
-    },
-    draw=function(this)
-        flash+=0.5
+*/
 
-        print("1000",x-2,y,7+flash%2)
+LifeUp::LifeUp(int x, int y) : Object(x, y) {
+    spd.y = SP(-0.25);
+    duration = 30;
+    x -= 2;
+    y -= 4;
+    flash = 0;
+    solids = false;
+}
+
+void LifeUp::update() {
+    duration -= 1;
+    if(duration <= 0) {
+        destroy_object(this);
     }
 }
 
-fake_wall = {
-    tile=64,
-    if_not_fruit=true,
-    update=function(this)
-        hitbox={x=-1,y=-1,w=18,h=18}
-        local hit = collide(player,0,0)
-        if (hit!=nullptr and hit.dash_effect_time>0 ) {
-            hit.spd.x=-sign(hit.spd.x)*1.5
-            hit.spd.y=-1.5
-            hit.dash_time=-1
-            sfx_timer=20
-            sfx(16)
-            destroy_object(this)
-            init_object(smoke,x,y)
-            init_object(smoke,x+8,y)
-            init_object(smoke,x,y+8)
-            init_object(smoke,x+8,y+8)
-            init_object(fruit,x+4,y+4)
-        }
-        hitbox={x=0,y=0,w=16,h=16}
-    },
-    draw=function(this)
-        spr(64,x,y)
-        spr(65,x+8,y)
-        spr(80,x,y+8)
-        spr(81,x+8,y+8)
-    }
+void LifeUp::draw() {
+    flash += 1;
+
+    print("1000", x - 2, y, 7 + (flash / 2) % 2);
 }
-add(types,fake_wall)
+
+FakeWall::FakeWall(int x, int y) : Object(x, y) {
+    type = fake_wall;
+};
+
+void FakeWall::update() {
+    hitbox={.x=-1,.y=-1,.w=18,.h=18};
+    auto *hit = (Player*)collide(player,0,0);
+    if (hit!=nullptr and hit->dash_effect_time>0 ) {
+        hit->spd.x=-sign(hit->spd.x) * 3 / 2;
+        hit->spd.y=SP(-1.5);
+        hit->dash_time=-1;
+        sfx_timer=20;
+        //sfx(16);
+        destroy_object(this);
+        new Smoke(x,y);
+        new Smoke(x+8,y);
+        new Smoke(x,y+8);
+        new Smoke(x+8,y+8);
+        new Fruit(x+4,y+4);
+    }
+    hitbox={.x=0,.y=0,.w=16,.h=16};
+}
+void FakeWall::draw() {
+    spr(64,x,y);
+    spr(65,x+8,y);
+    spr(80,x,y+8);
+    spr(81,x+8,y+8);
+}
+
+/*
 
 key={
     tile=8,
@@ -990,6 +990,10 @@ Object *init_object(type type, int x, int y) {
             //return new Platform(x, y);
         case smoke:
             return new Smoke(x, y);
+        case fruit:
+            return has_fruit ? nullptr : new Fruit(x, y);
+        case fake_wall:
+            return has_fruit ? nullptr : new FakeWall(x, y);
         default:
             return nullptr;
     }

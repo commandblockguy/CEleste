@@ -112,6 +112,10 @@ void map(int cell_x, int cell_y, int sx, int sy, int cell_w, int cell_h, uint8_t
     }
 }
 
+void spr(uint8_t n, int x, int y) {
+    spr(n, x, y, 1, 1, false, false);
+}
+
 void spr(uint8_t n, int x, int y, uint8_t w, uint8_t h, bool flip_x, bool flip_y) {
     if(w != 1 || h != 1) dbg_printf("tried to use multi-width sprite");
     gfx_sprite_t *sprite = atlas_tiles[n];

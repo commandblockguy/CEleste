@@ -35,7 +35,8 @@ enum type {
     big_chest,
     smoke,
     fall_floor,
-    fake_wall,
+    fake_wall = 64,
+    fruit = 26,
     NUM_TYPES
 };
 
@@ -108,6 +109,30 @@ public:
     Smoke(int x, int y);
     int sprite_timer{0};
     void update() override;
+};
+
+class Fruit : public Object {
+public:
+    Fruit(int x, int y);
+    int start;
+    int off;
+    void update() override;
+};
+
+class LifeUp : public Object {
+public:
+    LifeUp(int x, int y);
+    int duration;
+    int flash;
+    void update() override;
+    void draw() override;
+};
+
+class FakeWall : public Object {
+public:
+    FakeWall(int x, int y);
+    void update() override;
+    void draw() override;
 };
 
 class RoomTitle : public Object {
