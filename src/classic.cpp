@@ -1425,8 +1425,8 @@ bool ice_at(int x, int y, int w, int h) {
 }
 
 bool tile_flag_at(int x, int y, int w, int h, uint8_t flag) {
-    for(int i = max(0, x / 8); i < min(15, (x + w - 1) / 8.0); i++) {
-        for(int j = max(0, y / 8); j < min(15, (y + h - 1) / 8.0); j++) {
+    for(int i = max(0, x / 8); i <= min(15, (x + w - 1) / 8.0); i++) {
+        for(int j = max(0, y / 8); j <= min(15, (y + h - 1) / 8.0); j++) {
             if(fget(tile_at(i, j), flag)) {
                 return true;
             }
