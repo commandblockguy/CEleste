@@ -14,6 +14,7 @@ int main(void)
                       (LCD_HEIGHT + 128) / 2);
     gfx_SetPalette(mypalette, sizeof mypalette, 0);
     init();
+    timer_Enable(1, TIMER_32K, TIMER_NOINT, TIMER_UP);
     do {
         update();
     } while(!kb_IsDown(kb_KeyClear));

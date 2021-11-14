@@ -38,6 +38,7 @@ void init() {
 }
 
 void update() {
+    timer_Set(1, 0);
     kb_Scan();
 
     gameFrame++;
@@ -48,6 +49,9 @@ void update() {
         // draw
         gfx_FillScreen(0);
         _draw();
+        gfx_SetTextFGColor(7);
+        gfx_SetTextXY(0, 0);
+        gfx_PrintInt(timer_Get(1) / 33, 1);
         gfx_SwapDraw();
 
         // todo: palette swap
