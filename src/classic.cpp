@@ -14,28 +14,28 @@
 
 struct vec2i room = {0, 0};
 
-tinystl::vector<Object*> objects = {};
+tinystl::vector<Object *> objects = {};
 Cloud clouds[NUM_CLOUDS];
 
-int freeze=0;
-int shake=0;
-bool will_restart=false;
-int delay_restart=0;
+int freeze = 0;
+int shake = 0;
+bool will_restart = false;
+int delay_restart = 0;
 bool got_fruit[NUM_FRUITS];
-bool has_dashed=false;
-int sfx_timer=0;
-bool has_key=false;
-bool pause_player=false;
-bool flash_bg=false;
-int music_timer=0;
+bool has_dashed = false;
+int sfx_timer = 0;
+bool has_key = false;
+bool pause_player = false;
+bool flash_bg = false;
+int music_timer = 0;
 bool new_bg = false;
 
-uint8_t k_left=0;
-uint8_t k_right=1;
-uint8_t k_up=2;
-uint8_t k_down=3;
-uint8_t k_jump=4;
-uint8_t k_dash=5;
+uint8_t k_left = 0;
+uint8_t k_right = 1;
+uint8_t k_up = 2;
+uint8_t k_down = 3;
+uint8_t k_jump = 4;
+uint8_t k_dash = 5;
 
 int frames;
 int deaths;
@@ -46,47 +46,47 @@ int seconds;
 int minutes;
 
 void _init() {
-    for(auto & cloud : clouds) {
-        cloud.x=rnd(128);
-        cloud.y=rnd(128);
-        cloud.spd=1+rnd(4);
-        cloud.w=32+rnd(32);
+    for(auto &cloud: clouds) {
+        cloud.x = rnd(128);
+        cloud.y = rnd(128);
+        cloud.spd = 1 + rnd(4);
+        cloud.w = 32 + rnd(32);
     }
 
     title_screen();
 }
 
 void title_screen() {
-    for(bool & i : got_fruit) {
+    for(bool &i: got_fruit) {
         i = false;
     }
-    frames=0;
-    deaths=0;
-    max_djump=1;
-    start_game=false;
-    start_game_flash=0;
+    frames = 0;
+    deaths = 0;
+    max_djump = 1;
+    start_game = false;
+    start_game_flash = 0;
     //music(40,0,7);
-    
-    load_room(7,3);
+
+    load_room(7, 3);
 }
 
 void begin_game() {
-    frames=0;
-    seconds=0;
-    minutes=0;
-    music_timer=0;
-    start_game=false;
+    frames = 0;
+    seconds = 0;
+    minutes = 0;
+    music_timer = 0;
+    start_game = false;
     //music(0,0,7);
-    load_room(0,0);
+    load_room(0, 0);
 }
 
 int level_index() {
-    return room.x%8+room.y*8;
+    return room.x % 8 + room.y * 8;
 }
 
 
 bool is_title() {
-    return level_index()==31;
+    return level_index() == 31;
 }
 
 
@@ -113,19 +113,19 @@ bool is_title() {
 
 Player::Player(int x, int y) : Object(x, y) {
     dbg_printf("Player initialized at %i %i\n", x, y);
-    this->p_jump=false;
-    this->p_dash=false;
-    this->grace=0;
-    this->jbuffer=0;
-    this->djump=max_djump;
-    this->dash_time=0;
-    this->dash_effect_time=0;
-    this->dash_target={.x=0,.y=0};
-    this->dash_accel={.x=0,.y=0};
-    this->hitbox = {.x=1,.y=3,.w=6,.h=5};
-    this->spr_off=0;
-    this->was_on_ground=false;
-    this->type = player;
+    p_jump = false;
+    p_dash = false;
+    grace = 0;
+    jbuffer = 0;
+    djump = max_djump;
+    dash_time = 0;
+    dash_effect_time = 0;
+    dash_target = {.x=0, .y=0};
+    dash_accel = {.x=0, .y=0};
+    hitbox = {.x=1, .y=3, .w=6, .h=5};
+    spr_off = 0;
+    was_on_ground = false;
+    type = player;
     create_hair(this);
 }
 
@@ -144,42 +144,42 @@ void Player::update() {
         kill();
     }
 
-    bool on_ground = this->is_solid(0, 1);
-    bool on_ice = this->is_ice(0, 1);
+    bool on_ground = is_solid(0, 1);
+    bool on_ice = is_ice(0, 1);
 
     // smoke particles
-    if(on_ground and not this->was_on_ground) {
-        new Smoke(this->x, this->y + 4);
+    if(on_ground and not was_on_ground) {
+        new Smoke(x, y + 4);
     }
 
-    bool jump = btn(k_jump) and not this->p_jump;
-    this->p_jump = btn(k_jump);
+    bool jump = btn(k_jump) and not p_jump;
+    p_jump = btn(k_jump);
     if(jump) {
-        this->jbuffer = 4;
-    } else if(this->jbuffer > 0) {
-        this->jbuffer -= 1;
+        jbuffer = 4;
+    } else if(jbuffer > 0) {
+        jbuffer -= 1;
     }
 
-    bool dash = btn(k_dash) and not this->p_dash;
+    bool dash = btn(k_dash) and not p_dash;
 
-    this->p_dash = btn(k_dash);
+    p_dash = btn(k_dash);
 
     if(on_ground) {
-        this->grace = 6;
-        if(this->djump < max_djump) {
+        grace = 6;
+        if(djump < max_djump) {
             //psfx(54);
-            this->djump = max_djump;
+            djump = max_djump;
         }
-    } else if(this->grace > 0) {
-        this->grace -= 1;
+    } else if(grace > 0) {
+        grace -= 1;
     }
 
-    this->dash_effect_time -= 1;
-    if(this->dash_time > 0) {
-        new Smoke(this->x, this->y);
-        this->dash_time -= 1;
-        this->spd.x = appr(this->spd.x, this->dash_target.x, this->dash_accel.x);
-        this->spd.y = appr(this->spd.y, this->dash_target.y, this->dash_accel.y);
+    dash_effect_time -= 1;
+    if(dash_time > 0) {
+        new Smoke(x, y);
+        dash_time -= 1;
+        spd.x = appr(spd.x, dash_target.x, dash_accel.x);
+        spd.y = appr(spd.y, dash_target.y, dash_accel.y);
     } else {
 
         // move
@@ -191,61 +191,61 @@ void Player::update() {
             accel = SP(0.4);
         } else if(on_ice) {
             accel = SP(0.05);
-            if(input == (this->flip.x ? -1 : 1)) {
+            if(input == (flip.x ? -1 : 1)) {
                 accel = SP(0.05);
             }
         }
 
-        if(abs(this->spd.x) > maxrun) {
-            this->spd.x = appr(this->spd.x, sign(this->spd.x) * maxrun, deccel);
+        if(abs(spd.x) > maxrun) {
+            spd.x = appr(spd.x, sign(spd.x) * maxrun, deccel);
         } else {
-            this->spd.x = appr(this->spd.x, input * maxrun, accel);
+            spd.x = appr(spd.x, input * maxrun, accel);
         }
 
         //facing
-        if(this->spd.x != 0) {
-            this->flip.x = (this->spd.x < 0);
+        if(spd.x != 0) {
+            flip.x = (spd.x < 0);
         }
 
         // gravity
         subpixel maxfall = SP(2);
         subpixel gravity = SP(0.21);
 
-        if(abs(this->spd.y) <= SP(0.15)) {
+        if(abs(spd.y) <= SP(0.15)) {
             gravity = SP(0.21 * 0.5);
         }
 
         // wall slide
-        if(input != 0 and this->is_solid(input, 0) and not this->is_ice(input, 0)) {
+        if(input != 0 and is_solid(input, 0) and not is_ice(input, 0)) {
             maxfall = SP(0.4);
             if(rnd(10) < 2) {
-                new Smoke(this->x + input * 6, this->y);
+                new Smoke(x + input * 6, y);
             }
         }
 
         if(not on_ground) {
-            this->spd.y = appr(this->spd.y, maxfall, gravity);
+            spd.y = appr(spd.y, maxfall, gravity);
         }
 
         // jump
-        if(this->jbuffer > 0) {
-            if(this->grace > 0) {
+        if(jbuffer > 0) {
+            if(grace > 0) {
                 // normal jump
                 //psfx(1);
-                this->jbuffer = 0;
-                this->grace = 0;
-                this->spd.y = SP(-2);
-                new Smoke(this->x, this->y + 4);
+                jbuffer = 0;
+                grace = 0;
+                spd.y = SP(-2);
+                new Smoke(x, y + 4);
             } else {
                 // wall jump
-                int wall_dir = (this->is_solid(-3, 0) ? -1 : this->is_solid(3, 0) ? 1 : 0);
+                int wall_dir = (is_solid(-3, 0) ? -1 : is_solid(3, 0) ? 1 : 0);
                 if(wall_dir != 0) {
                     //psfx(2);
-                    this->jbuffer = 0;
-                    this->spd.y = SP(-2);
-                    this->spd.x = -wall_dir * (maxrun + SP(1));
-                    if(not this->is_ice(wall_dir * 3, 0)) {
-                        new Smoke(this->x + wall_dir * 6, this->y);
+                    jbuffer = 0;
+                    spd.y = SP(-2);
+                    spd.x = -wall_dir * (maxrun + SP(1));
+                    if(not is_ice(wall_dir * 3, 0)) {
+                        new Smoke(x + wall_dir * 6, y);
                     }
                 }
             }
@@ -255,96 +255,96 @@ void Player::update() {
         subpixel d_full = SP(5);
         subpixel d_half = SP(5 * 0.70710678118);
 
-        if(this->djump > 0 and dash) {
-            new Smoke(this->x, this->y);
-            this->djump -= 1;
-            this->dash_time = 4;
+        if(djump > 0 and dash) {
+            new Smoke(x, y);
+            djump -= 1;
+            dash_time = 4;
             has_dashed = true;
-            this->dash_effect_time = 10;
+            dash_effect_time = 10;
             int v_input = (btn(k_up) ? -1 : (btn(k_down) ? 1 : 0));
             if(input != 0) {
                 if(v_input != 0) {
-                    this->spd.x = input * d_half;
-                    this->spd.y = v_input * d_half;
+                    spd.x = input * d_half;
+                    spd.y = v_input * d_half;
                 } else {
-                    this->spd.x = input * d_full;
-                    this->spd.y = 0;
+                    spd.x = input * d_full;
+                    spd.y = 0;
                 }
             } else if(v_input != 0) {
-                this->spd.x = 0;
-                this->spd.y = v_input * d_full;
+                spd.x = 0;
+                spd.y = v_input * d_full;
             } else {
-                this->spd.x = SP(this->flip.x ? -1 : 1);
-                this->spd.y = 0;
+                spd.x = SP(flip.x ? -1 : 1);
+                spd.y = 0;
             }
 
             //psfx(3);
             freeze = 2;
             shake = 6;
-            this->dash_target.x = SP(2) * sign(this->spd.x);
-            this->dash_target.y = SP(2) * sign(this->spd.y);
-            this->dash_accel.x = SP(1.5);
-            this->dash_accel.y = SP(1.5);
+            dash_target.x = SP(2) * sign(spd.x);
+            dash_target.y = SP(2) * sign(spd.y);
+            dash_accel.x = SP(1.5);
+            dash_accel.y = SP(1.5);
 
-            if(this->spd.y < 0) {
+            if(spd.y < 0) {
                 dash_target.y = dash_target.y * 3 / 4;
             }
 
-            if(this->spd.y != 0) {
-                this->dash_accel.x = SP(1.5 * 0.70710678118);
+            if(spd.y != 0) {
+                dash_accel.x = SP(1.5 * 0.70710678118);
             }
-            if(this->spd.x != 0) {
-                this->dash_accel.y = SP(15 * 0.70710678118);
+            if(spd.x != 0) {
+                dash_accel.y = SP(15 * 0.70710678118);
             }
-        } else if(dash and this->djump <= 0) {
+        } else if(dash and djump <= 0) {
             //psfx(9);
-            new Smoke(this->x, this->y);
+            new Smoke(x, y);
         }
 
     }
 
     // animation
-    this->spr_off += 1;
+    spr_off += 1;
     if(not on_ground) {
-        if(this->is_solid(input, 0)) {
-            this->sprite = 5;
+        if(is_solid(input, 0)) {
+            sprite = 5;
         } else {
-            this->sprite = 3;
+            sprite = 3;
         }
     } else if(btn(k_down)) {
-        this->sprite = 6;
+        sprite = 6;
     } else if(btn(k_up)) {
-        this->sprite = 7;
-    } else if((this->spd.x == 0) or (not btn(k_left) and not btn(k_right))) {
-        this->sprite = 1;
+        sprite = 7;
+    } else if((spd.x == 0) or (not btn(k_left) and not btn(k_right))) {
+        sprite = 1;
     } else {
-        this->sprite = 1 + (this->spr_off / 4) % 4;
+        sprite = 1 + (spr_off / 4) % 4;
     }
 
     // next level
-    if(this->y < -4 and level_index() < 30) { next_room(); }
+    if(y < -4 and level_index() < 30) { next_room(); }
 
     // was on the ground
-    this->was_on_ground = on_ground;
+    was_on_ground = on_ground;
 }
 
 void Player::draw() {
     // clamp in screen
-    if (this->x<-1 or this->x>121 ) { 
-        this->x=clamp(this->x,-1,121);
-        this->spd.x=0;
+    if(x < -1 or x > 121) {
+        x = clamp(x, -1, 121);
+        spd.x = 0;
     }
 
-    set_hair_color(this->djump);
-    draw_hair(this,this->flip.x ? -1 : 1);
-    spr(this->sprite,this->x,this->y,1,1,this->flip.x,this->flip.y);
+    set_hair_color(djump);
+    draw_hair(this, flip.x ? -1 : 1);
+    spr(sprite, x, y, 1, 1, flip.x, flip.y);
     unset_hair_color();
 }
 
 void psfx(int num) {
- if (sfx_timer<=0 ) {
-  //sfx(num)
- }
+    if(sfx_timer <= 0) {
+        //sfx(num)
+    }
 }
 
 void create_hair(Object *obj) {
@@ -375,57 +375,57 @@ void unset_hair_color() {
     pal(8, 8);
 }
 
-PlayerSpawn::PlayerSpawn(int x, int y) : Object (x, y) {
+PlayerSpawn::PlayerSpawn(int x, int y) : Object(x, y) {
     //sfx(4);
-    this->sprite=3;
-    this->target = {.x=this->x,.y=this->y};
-    this->y=128;
-    this->spd.y=SP(-4);
-    this->state=0;
-    this->delay=0;
-    this->solids=false;
-    this->type = player_spawn;
+    sprite = 3;
+    target = {.x=x, .y=y};
+    y = 128;
+    spd.y = SP(-4);
+    state = 0;
+    delay = 0;
+    solids = false;
+    type = player_spawn;
     create_hair(this);
 }
 
 void PlayerSpawn::update() {
     // jumping up
-    if(this->state == 0) {
-        if(this->y < this->target.y + 16) {
-            this->state = 1;
-            this->delay = 3;
+    if(state == 0) {
+        if(y < target.y + 16) {
+            state = 1;
+            delay = 3;
         }
         // falling
-    } else if(this->state == 1) {
-        this->spd.y += SP(0.5);
-        if(this->spd.y > 0 and this->delay > 0) {
-            this->spd.y = 0;
-            this->delay -= 1;
+    } else if(state == 1) {
+        spd.y += SP(0.5);
+        if(spd.y > 0 and delay > 0) {
+            spd.y = 0;
+            delay -= 1;
         }
-        if(this->spd.y > 0 and this->y > this->target.y) {
-            this->y = this->target.y;
-            this->spd = {.x=0, .y=0};
-            this->state = 2;
-            this->delay = 5;
+        if(spd.y > 0 and y > target.y) {
+            y = target.y;
+            spd = {.x=0, .y=0};
+            state = 2;
+            delay = 5;
             shake = 5;
-            new Smoke(this->x, this->y + 4);
+            new Smoke(x, y + 4);
             //sfx(5);
         }
         // landing
-    } else if(this->state == 2) {
-        this->delay -= 1;
-        this->sprite = 6;
-        if(this->delay < 0) {
+    } else if(state == 2) {
+        delay -= 1;
+        sprite = 6;
+        if(delay < 0) {
             destroy_object(this);
-            new Player(this->x, this->y);
+            new Player(x, y);
         }
     }
 }
 
 void PlayerSpawn::draw() {
     set_hair_color(max_djump);
-    draw_hair(this,1);
-    spr(this->sprite,this->x,this->y,1,1,this->flip.x,this->flip.y);
+    draw_hair(this, 1);
+    spr(sprite, x, y, 1, 1, flip.x, flip.y);
     unset_hair_color();
 }
 
@@ -434,47 +434,47 @@ void PlayerSpawn::draw() {
 spring = {
     tile=18,
     init=function(this)
-        this->hide_in=0
-        this->hide_for=0
+        hide_in=0
+        hide_for=0
     },
     update=function(this)
-        if (this->hide_for>0 ) {
-            this->hide_for-=1
-            if (this->hide_for<=0 ) {
-                this->spr=18
-                this->delay=0
+        if (hide_for>0 ) {
+            hide_for-=1
+            if (hide_for<=0 ) {
+                spr=18
+                delay=0
             }
-        } else if (this->spr==18 ) {
-            local hit = this->collide(player,0,0)
+        } else if (spr==18 ) {
+            local hit = collide(player,0,0)
             if (hit !=nullptr and hit.spd.y>=0 ) {
-                this->spr=19
-                hit.y=this->y-4
+                spr=19
+                hit.y=y-4
                 hit.spd.x*=0.2
                 hit.spd.y=-3
                 hit.djump=max_djump
-                this->delay=10
-                init_object(smoke,this->x,this->y)
+                delay=10
+                init_object(smoke,x,y)
                
                 // breakable below us
-                local below=this->collide(fall_floor,0,1)
+                local below=collide(fall_floor,0,1)
                 if (below!=nullptr ) {
                     break_fall_floor(below)
                 }
                
                 psfx(8)
             }
-        } else if (this->delay>0 ) {
-            this->delay-=1
-            if (this->delay<=0 ) { 
-                this->spr=18 
+        } else if (delay>0 ) {
+            delay-=1
+            if (delay<=0 ) { 
+                spr=18 
             }
         }
         // begin hiding
-        if (this->hide_in>0 ) {
-            this->hide_in-=1
-            if (this->hide_in<=0 ) {
-                this->hide_for=60
-                this->spr=0
+        if (hide_in>0 ) {
+            hide_in-=1
+            if (hide_in<=0 ) {
+                hide_for=60
+                spr=0
             }
         }
     }
@@ -488,35 +488,35 @@ function break_spring(obj)
 balloon = {
     tile=22,
     init=function(this) 
-        this->offset=rnd(1)
-        this->start=this->y
-        this->timer=0
-        this->hitbox={x=-1,y=-1,w=10,h=10}
+        offset=rnd(1)
+        start=y
+        timer=0
+        hitbox={x=-1,y=-1,w=10,h=10}
     },
     update=function(this) 
-        if (this->spr==22 ) {
-            this->offset+=0.01
-            this->y=this->start+sin(this->offset)*2
-            local hit = this->collide(player,0,0)
+        if (spr==22 ) {
+            offset+=0.01
+            y=start+sin(offset)*2
+            local hit = collide(player,0,0)
             if (hit!=nullptr and hit.djump<max_djump ) {
                 psfx(6)
-                init_object(smoke,this->x,this->y)
+                init_object(smoke,x,y)
                 hit.djump=max_djump
-                this->spr=0
-                this->timer=60
+                spr=0
+                timer=60
             }
-        } else if (this->timer>0 ) {
-            this->timer-=1
+        } else if (timer>0 ) {
+            timer-=1
         else 
          psfx(7)
-         init_object(smoke,this->x,this->y)
-            this->spr=22 
+         init_object(smoke,x,y)
+            spr=22 
         }
     },
     draw=function(this)
-        if (this->spr==22 ) {
-            spr(13+(this->offset*8)%3,this->x,this->y+6)
-            spr(this->spr,this->x,this->y)
+        if (spr==22 ) {
+            spr(13+(offset*8)%3,x,y+6)
+            spr(spr,x,y)
         }
     }
 }
@@ -525,40 +525,40 @@ add(types,balloon)
 fall_floor = {
     tile=23,
     init=function(this)
-        this->state=0
-        this->solid=true
+        state=0
+        solid=true
     },
     update=function(this)
         // idling
-        if (this->state == 0 ) {
-            if this->check(player,0,-1) or this->check(player,-1,0) or this->check(player,1,0) {
+        if (state == 0 ) {
+            if check(player,0,-1) or check(player,-1,0) or check(player,1,0) {
                 break_fall_floor(this)
             }
         // shaking
-        } else if (this->state==1 ) {
-            this->delay-=1
-            if (this->delay<=0 ) {
-                this->state=2
-                this->delay=60//how long it hides for
-                this->collideable=false
+        } else if (state==1 ) {
+            delay-=1
+            if (delay<=0 ) {
+                state=2
+                delay=60//how long it hides for
+                collideable=false
             }
         // invisible, waiting to reset
-        } else if (this->state==2 ) {
-            this->delay-=1
-            if this->delay<=0 and not this->check(player,0,0) {
+        } else if (state==2 ) {
+            delay-=1
+            if delay<=0 and not check(player,0,0) {
                 psfx(7)
-                this->state=0
-                this->collideable=true
-                init_object(smoke,this->x,this->y)
+                state=0
+                collideable=true
+                init_object(smoke,x,y)
             }
         }
     },
     draw=function(this)
-        if (this->state!=2 ) {
-            if (this->state!=1 ) {
-                spr(23,this->x,this->y)
+        if (state!=2 ) {
+            if (state!=1 ) {
+                spr(23,x,y)
             else
-                spr(23+(15-this->delay)/5,this->x,this->y)
+                spr(23+(15-delay)/5,x,y)
             }
         }
     }
@@ -579,45 +579,47 @@ function break_fall_floor(obj)
 }
 */
 Smoke::Smoke(int x, int y) : Object(x, y) {
-    this->sprite=29;
-    this->spd.y=SP(-0.1);
-    this->spd.x=SP(0.3)+rnd(SP(0.2));
-    this->x+=-1+rnd(2);
-    this->y+=-1+rnd(2);
-    this->flip.x=maybe();
-    this->flip.y=maybe();
-    this->solids=false;
-    this->type = smoke;
+    sprite = 29;
+    spd.y = SP(-0.1);
+    spd.x = SP(0.3) + rnd(SP(0.2));
+    x += -1 + rnd(2);
+    y += -1 + rnd(2);
+    flip.x = maybe();
+    flip.y = maybe();
+    solids = false;
+    type = smoke;
 }
+
 void Smoke::update() {
     if(++sprite_timer == 5) {
         sprite_timer = 0;
         sprite++;
     }
-    if (this->sprite>=32) {
+    if(sprite >= 32) {
         destroy_object(this);
     }
 }
+
 /*
 fruit={
     tile=26,
     if_not_fruit=true,
     init=function(this) 
-        this->start=this->y
-        this->off=0
+        start=y
+        off=0
     },
     update=function(this)
-     local hit=this->collide(player,0,0)
+     local hit=collide(player,0,0)
         if (hit!=nullptr ) {
          hit.djump=max_djump
             sfx_timer=20
             sfx(13)
             got_fruit[level_index()] = true
-            init_object(lifeup,this->x,this->y)
+            init_object(lifeup,x,y)
             destroy_object(this)
         }
-        this->off+=1
-        this->y=this->start+sin(this->off/40)*2.5
+        off+=1
+        y=start+sin(off/40)*2.5
     }
 }
 add(types,fruit)
@@ -626,81 +628,81 @@ fly_fruit={
     tile=28,
     if_not_fruit=true,
     init=function(this) 
-        this->start=this->y
-        this->fly=false
-        this->step=0.5
-        this->solids=false
-        this->sfx_delay=8
+        start=y
+        fly=false
+        step=0.5
+        solids=false
+        sfx_delay=8
     },
     update=function(this)
         //fly away
-        if (this->fly ) {
-         if (this->sfx_delay>0 ) {
-          this->sfx_delay-=1
-          if (this->sfx_delay<=0 ) {
+        if (fly ) {
+         if (sfx_delay>0 ) {
+          sfx_delay-=1
+          if (sfx_delay<=0 ) {
            sfx_timer=20
            sfx(14)
           }
          }
-            this->spd.y=appr(this->spd.y,-3.5,0.25)
-            if (this->y<-16 ) {
+            spd.y=appr(spd.y,-3.5,0.25)
+            if (y<-16 ) {
                 destroy_object(this)
             }
         // wait
         else
             if (has_dashed ) {
-                this->fly=true
+                fly=true
             }
-            this->step+=0.05
-            this->spd.y=sin(this->step)*0.5
+            step+=0.05
+            spd.y=sin(step)*0.5
         }
         // collect
-        local hit=this->collide(player,0,0)
+        local hit=collide(player,0,0)
         if (hit!=nullptr ) {
          hit.djump=max_djump
             sfx_timer=20
             sfx(13)
             got_fruit[level_index()] = true
-            init_object(lifeup,this->x,this->y)
+            init_object(lifeup,x,y)
             destroy_object(this)
         }
     },
     draw=function(this)
         local off=0
-        if (not this->fly ) {
-            local dir=sin(this->step)
+        if (not fly ) {
+            local dir=sin(step)
             if (dir<0 ) {
-                off=1+max(0,sign(this->y-this->start))
+                off=1+max(0,sign(y-start))
             }
         else
             off=(off+0.25)%3
         }
-        spr(45+off,this->x-6,this->y-2,1,1,true,false)
-        spr(this->spr,this->x,this->y)
-        spr(45+off,this->x+6,this->y-2)
+        spr(45+off,x-6,y-2,1,1,true,false)
+        spr(spr,x,y)
+        spr(45+off,x+6,y-2)
     }
 }
 add(types,fly_fruit)
 
 lif (eup = ) {
     init=function(this)
-        this->spd.y=-0.25
-        this->duration=30
-        this->x-=2
-        this->y-=4
-        this->flash=0
-        this->solids=false
+        spd.y=-0.25
+        duration=30
+        x-=2
+        y-=4
+        flash=0
+        solids=false
     },
     update=function(this)
-        this->duration-=1
-        if (this->duration<= 0 ) {
+        duration-=1
+        if (duration<= 0 ) {
             destroy_object(this)
         }
     },
     draw=function(this)
-        this->flash+=0.5
+        flash+=0.5
 
-        print("1000",this->x-2,this->y,7+this->flash%2)
+        print("1000",x-2,y,7+flash%2)
     }
 }
 
@@ -708,8 +710,8 @@ fake_wall = {
     tile=64,
     if_not_fruit=true,
     update=function(this)
-        this->hitbox={x=-1,y=-1,w=18,h=18}
-        local hit = this->collide(player,0,0)
+        hitbox={x=-1,y=-1,w=18,h=18}
+        local hit = collide(player,0,0)
         if (hit!=nullptr and hit.dash_effect_time>0 ) {
             hit.spd.x=-sign(hit.spd.x)*1.5
             hit.spd.y=-1.5
@@ -717,19 +719,19 @@ fake_wall = {
             sfx_timer=20
             sfx(16)
             destroy_object(this)
-            init_object(smoke,this->x,this->y)
-            init_object(smoke,this->x+8,this->y)
-            init_object(smoke,this->x,this->y+8)
-            init_object(smoke,this->x+8,this->y+8)
-            init_object(fruit,this->x+4,this->y+4)
+            init_object(smoke,x,y)
+            init_object(smoke,x+8,y)
+            init_object(smoke,x,y+8)
+            init_object(smoke,x+8,y+8)
+            init_object(fruit,x+4,y+4)
         }
-        this->hitbox={x=0,y=0,w=16,h=16}
+        hitbox={x=0,y=0,w=16,h=16}
     },
     draw=function(this)
-        spr(64,this->x,this->y)
-        spr(65,this->x+8,this->y)
-        spr(80,this->x,this->y+8)
-        spr(81,this->x+8,this->y+8)
+        spr(64,x,y)
+        spr(65,x+8,y)
+        spr(80,x,y+8)
+        spr(81,x+8,y+8)
     }
 }
 add(types,fake_wall)
@@ -738,13 +740,13 @@ key={
     tile=8,
     if_not_fruit=true,
     update=function(this)
-        local was=flr(this->spr)
-        this->spr=9+(sin(frames/30)+0.5)*1
-        local is=flr(this->spr)
+        local was=flr(spr)
+        spr=9+(sin(frames/30)+0.5)*1
+        local is=flr(spr)
         if (is==10 and is!=was ) {
-            this->flip.x=not this->flip.x
+            flip.x=not flip.x
         }
-        if this->check(player,0,0) {
+        if check(player,0,0) {
             sfx(23)
             sfx_timer=10
             destroy_object(this)
@@ -758,18 +760,18 @@ chest={
     tile=20,
     if_not_fruit=true,
     init=function(this)
-        this->x-=4
-        this->start=this->x
-        this->timer=20
+        x-=4
+        start=x
+        timer=20
     },
     update=function(this)
         if (has_key ) {
-            this->timer-=1
-            this->x=this->start-1+rnd(3)
-            if (this->timer<=0 ) {
+            timer-=1
+            x=start-1+rnd(3)
+            if (timer<=0 ) {
              sfx_timer=20
              sfx(16)
-                init_object(fruit,this->x,this->y-4)
+                init_object(fruit,x,y-4)
                 destroy_object(this)
             }
         }
@@ -779,26 +781,26 @@ add(types,chest)
 
 platform={
     init=function(this)
-        this->x-=4
-        this->solids=false
-        this->hitbox.w=16
-        this->last=this->x
+        x-=4
+        solids=false
+        hitbox.w=16
+        last=x
     },
     update=function(this)
-        this->spd.x=this->dir*0.65
-        if (this->x<-16 ) { this->x=128
-        } else if (this->x>128 ) { this->x=-16 }
-        if not this->check(player,0,0) {
-            local hit=this->collide(player,0,-1)
+        spd.x=dir*0.65
+        if (x<-16 ) { x=128
+        } else if (x>128 ) { x=-16 }
+        if not check(player,0,0) {
+            local hit=collide(player,0,-1)
             if (hit!=nullptr ) {
-                hit.move_x(this->x-this->last,1)
+                hit.move_x(x-last,1)
             }
         }
-        this->last=this->x
+        last=x
     },
     draw=function(this)
-        spr(11,this->x,this->y-1)
-        spr(12,this->x+8,this->y-1)
+        spr(11,x,y-1)
+        spr(12,x+8,y-1)
     }
 }
 
@@ -806,29 +808,29 @@ message={
     tile=86,
     last=0,
     draw=function(this)
-        this->text="-- celeste mountain --#this memorial to those# perished on the climb"
-        if this->check(player,4,0) {
-            if (this->index<#this->text ) {
-             this->index+=0.5
-                if (this->index>=this->last+1 ) {
-                 this->last+=1
+        text="-- celeste mountain --#this memorial to those# perished on the climb"
+        if check(player,4,0) {
+            if (index<#text ) {
+             index+=0.5
+                if (index>=last+1 ) {
+                 last+=1
                  sfx(35)
                 }
             }
-            this->off={x=8,y=96}
-            for i=1,this->index do
-                if sub(this->text,i,i)!="#" {
-                    rectfill(this->off.x-2,this->off.y-2,this->off.x+7,this->off.y+6 ,7)
-                    print(sub(this->text,i,i),this->off.x,this->off.y,0)
-                    this->off.x+=5
+            off={x=8,y=96}
+            for i=1,index do
+                if sub(text,i,i)!="#" {
+                    rectfill(off.x-2,off.y-2,off.x+7,off.y+6 ,7)
+                    print(sub(text,i,i),off.x,off.y,0)
+                    off.x+=5
                 else
-                    this->off.x=8
-                    this->off.y+=7
+                    off.x=8
+                    off.y+=7
                 }
             }
         else
-            this->index=0
-            this->last=0
+            index=0
+            last=0
         }
     }
 }
@@ -837,67 +839,67 @@ add(types,message)
 big_chest={
     tile=96,
     init=function(this)
-        this->state=0
-        this->hitbox.w=16
+        state=0
+        hitbox.w=16
     },
     draw=function(this)
-        if (this->state==0 ) {
-            local hit=this->collide(player,0,8)
+        if (state==0 ) {
+            local hit=collide(player,0,8)
             if hit!=nullptr and hit.is_solid(0,1) {
                 music(-1,500,7)
                 sfx(37)
                 pause_player=true
                 hit.spd.x=0
                 hit.spd.y=0
-                this->state=1
-                init_object(smoke,this->x,this->y)
-                init_object(smoke,this->x+8,this->y)
-                this->timer=60
-                this->particles={}
+                state=1
+                init_object(smoke,x,y)
+                init_object(smoke,x+8,y)
+                timer=60
+                particles={}
             }
-            spr(96,this->x,this->y)
-            spr(97,this->x+8,this->y)
-        } else if (this->state==1 ) {
-            this->timer-=1
+            spr(96,x,y)
+            spr(97,x+8,y)
+        } else if (state==1 ) {
+            timer-=1
          shake=5
          flash_bg=true
-            if this->timer<=45 and count(this->particles)<50 {
-                add(this->particles,{
+            if timer<=45 and count(particles)<50 {
+                add(particles,{
                     x=1+rnd(14),
                     y=0,
                     h=32+rnd(32),
                     spd=8+rnd(8)
                 })
             }
-            if (this->timer<0 ) {
-                this->state=2
-                this->particles={}
+            if (timer<0 ) {
+                state=2
+                particles={}
                 flash_bg=false
                 new_bg=true
-                init_object(orb,this->x+4,this->y+4)
+                init_object(orb,x+4,y+4)
                 pause_player=false
             }
-            foreach(this->particles,function(p)
+            foreach(particles,function(p)
                 p.y+=p.spd
-                line(this->x+p.x,this->y+8-p.y,this->x+p.x,min(this->y+8-p.y+p.h,this->y+8),7)
+                line(x+p.x,y+8-p.y,x+p.x,min(y+8-p.y+p.h,y+8),7)
             })
         }
-        spr(112,this->x,this->y+8)
-        spr(113,this->x+8,this->y+8)
+        spr(112,x,y+8)
+        spr(113,x+8,y+8)
     }
 }
 add(types,big_chest)
 
 orb={
     init=function(this)
-        this->spd.y=-4
-        this->solids=false
-        this->particles={}
+        spd.y=-4
+        solids=false
+        particles={}
     },
     draw=function(this)
-        this->spd.y=appr(this->spd.y,0,0.5)
-        local hit=this->collide(player,0,0)
-        if (this->spd.y==0 and hit!=nullptr ) {
+        spd.y=appr(spd.y,0,0.5)
+        local hit=collide(player,0,0)
+        if (spd.y==0 and hit!=nullptr ) {
          music_timer=45
             sfx(51)
             freeze=10
@@ -907,10 +909,10 @@ orb={
             hit.djump=2
         }
        
-        spr(102,this->x,this->y)
+        spr(102,x,y)
         local off=frames/30
         for i=0,7 do
-            circfill(this->x+4+cos(off+i/8)*8,this->y+4+sin(off+i/8)*8,1,7)
+            circfill(x+4+cos(off+i/8)*8,y+4+sin(off+i/8)*8,1,7)
         }
     }
 }
@@ -918,28 +920,28 @@ orb={
 flag = {
     tile=118,
     init=function(this)
-        this->x+=5
-        this->score=0
-        this->show=false
+        x+=5
+        score=0
+        show=false
         for i=1,count(got_fruit) do
             if (got_fruit[i] ) {
-                this->score+=1
+                score+=1
             }
         }
     },
     draw=function(this)
-        this->spr=118+(frames/5)%3
-        spr(this->spr,this->x,this->y)
-        if (this->show ) {
+        spr=118+(frames/5)%3
+        spr(spr,x,y)
+        if (show ) {
             rectfill(32,2,96,31,0)
             spr(26,55,6)
-            print("x"..this->score,64,9,7)
+            print("x"..score,64,9,7)
             draw_time(49,16)
             print("deaths:"..deaths,48,24,7)
-        } else if this->check(player,0,0) {
+        } else if check(player,0,0) {
             sfx(55)
       sfx_timer=30
-            this->show=true
+            show=true
         }
     }
 }
@@ -948,14 +950,14 @@ add(types,flag)
  */
 
 RoomTitle::RoomTitle(int x, int y) : Object(x, y) {
-    this->delay = 5;
+    delay = 5;
 }
 
 void RoomTitle::draw() {
-    this->delay -= 1;
-    if (this->delay < -30) {
+    delay -= 1;
+    if(delay < -30) {
         destroy_object(this);
-    } else if (this->delay < 0) {
+    } else if(delay < 0) {
 
         rectfill(24, 58, 104, 70, 0);
 
@@ -994,44 +996,44 @@ Object *init_object(type type, int x, int y) {
 }
 
 Object::Object(int x, int y) {
-    this->collideable=true;
-    this->solids=true;
+    collideable = true;
+    solids = true;
 
-    this->sprite = 0; // todo
-    this->flip = {.x=false,.y=false};
+    sprite = 0; // todo
+    flip = {.x=false, .y=false};
 
     this->x = x;
     this->y = y;
-    this->hitbox = { .x=0,.y=0,.w=8,.h=8 };
+    hitbox = {.x=0, .y=0, .w=8, .h=8};
 
-    this->spd = {.x=0,.y=0};
-    this->rem = {.x=0,.y=0};
+    spd = {.x=0, .y=0};
+    rem = {.x=0, .y=0};
 
     objects.push_back(this);
 }
 
 
 bool Object::is_solid(int ox, int oy) {
-    if(oy > 0 and not this->check(platform, ox, 0) and this->check(platform, ox, oy)) {
+    if(oy > 0 and not check(platform, ox, 0) and check(platform, ox, oy)) {
         return true;
     }
-    return solid_at(this->x + this->hitbox.x + ox, this->y + this->hitbox.y + oy, this->hitbox.w, this->hitbox.h)
-           or this->check(fall_floor, ox, oy)
-           or this->check(fake_wall, ox, oy);
+    return solid_at(x + hitbox.x + ox, y + hitbox.y + oy, hitbox.w, hitbox.h)
+           or check(fall_floor, ox, oy)
+           or check(fake_wall, ox, oy);
 }
 
 
 bool Object::is_ice(int ox, int oy) {
-    return ice_at(this->x+this->hitbox.x+ox,this->y+this->hitbox.y+oy,this->hitbox.w,this->hitbox.h);
+    return ice_at(x + hitbox.x + ox, y + hitbox.y + oy, hitbox.w, hitbox.h);
 }
 
 Object *Object::collide(enum type type, int ox, int oy) {
     for(Object *other: objects) {
         if(other != nullptr and other->type == type and other != this and other->collideable and
-           other->x + other->hitbox.x + other->hitbox.w > this->x + this->hitbox.x + ox and
-           other->y + other->hitbox.y + other->hitbox.h > this->y + this->hitbox.y + oy and
-           other->x + other->hitbox.x < this->x + this->hitbox.x + this->hitbox.w + ox and
-           other->y + other->hitbox.y < this->y + this->hitbox.y + this->hitbox.h + oy) {
+           other->x + other->hitbox.x + other->hitbox.w > x + hitbox.x + ox and
+           other->y + other->hitbox.y + other->hitbox.h > y + hitbox.y + oy and
+           other->x + other->hitbox.x < x + hitbox.x + hitbox.w + ox and
+           other->y + other->hitbox.y < y + hitbox.y + hitbox.h + oy) {
             return other;
         }
     }
@@ -1039,55 +1041,55 @@ Object *Object::collide(enum type type, int ox, int oy) {
 }
 
 bool Object::check(enum type type, int ox, int oy) {
-    return this->collide(type, ox, oy) != nullptr;
+    return collide(type, ox, oy) != nullptr;
 }
 
 void Object::move(subpixel ox, subpixel oy) {
     int amount;
     // [x] get move amount
-    this->rem.x += ox;
+    rem.x += ox;
     amount = PIX(rem.x + SP(0.5));
-    this->rem.x -= SP(amount);
-    this->move_x(amount, 0);
+    rem.x -= SP(amount);
+    move_x(amount, 0);
 
     // [y] get move amount
-    this->rem.y += oy;
+    rem.y += oy;
     amount = PIX(rem.y + SP(0.5));
-    this->rem.y -= SP(amount);
-    this->move_y(amount);
+    rem.y -= SP(amount);
+    move_y(amount);
 }
 
 void Object::move_x(int amount, int start) {
-    if(this->solids) {
+    if(solids) {
         int step = sign(amount);
         for(int i = start; i <= abs(amount); i++) {
-            if(not this->is_solid(step, 0)) {
-                this->x += step;
+            if(not is_solid(step, 0)) {
+                x += step;
             } else {
-                this->spd.x = 0;
-                this->rem.x = 0;
+                spd.x = 0;
+                rem.x = 0;
                 break;
             }
         }
     } else {
-        this->x += amount;
+        x += amount;
     }
 }
 
 void Object::move_y(int amount) {
-    if(this->solids) {
+    if(solids) {
         int step = sign(amount);
         for(int i = 0; i <= abs(amount); i++) {
-            if(not this->is_solid(0, step)) {
-                this->y += step;
+            if(not is_solid(0, step)) {
+                y += step;
             } else {
-                this->spd.y = 0;
-                this->rem.y = 0;
+                spd.y = 0;
+                rem.y = 0;
                 break;
             }
         }
     } else {
-        this->y += amount;
+        y += amount;
     }
 }
 
@@ -1101,10 +1103,10 @@ void destroy_object(Object *obj) {
 }
 
 void Player::kill() {
-    sfx_timer=12;
+    sfx_timer = 12;
     //sfx(0);
-    deaths+=1;
-    shake=10;
+    deaths += 1;
+    shake = 10;
     destroy_object(this);
 //    dead_particles={};
 //    for(int dir=0; dir <= 7; dir++) {
@@ -1127,8 +1129,8 @@ void Player::kill() {
 
 
 void restart_room() {
-    will_restart=true;
-    delay_restart=15;
+    will_restart = true;
+    delay_restart = 15;
 }
 
 
@@ -1151,11 +1153,11 @@ void next_room() {
 }
 
 void load_room(uint8_t x, uint8_t y) {
-    has_dashed=false;
-    has_key=false;
+    has_dashed = false;
+    has_key = false;
 
     //remove existing objects
-    for(Object *object : objects) {
+    for(Object *object: objects) {
         // todo: this probably doesn't work
         destroy_object(object);
     }
@@ -1166,20 +1168,18 @@ void load_room(uint8_t x, uint8_t y) {
 
     // entities
     for(uint8_t tx = 0; tx <= 15; tx++) {
-        for(uint8_t ty = 0 ; ty <= 15; ty++) {
-            uint8_t tile = mget(room.x*16+tx,room.y*16+ty);
-            if(tile==11) {
-                init_object(platform,tx*8,ty*8)->dir=-1;
-            }
-            else if(tile==12) {
-                init_object(platform,tx*8,ty*8)->dir=1;
-            }
-            else {
-                init_object((type)(tile), tx * 8, ty * 8);
+        for(uint8_t ty = 0; ty <= 15; ty++) {
+            uint8_t tile = mget(room.x * 16 + tx, room.y * 16 + ty);
+            if(tile == 11) {
+                init_object(platform, tx * 8, ty * 8)->dir = -1;
+            } else if(tile == 12) {
+                init_object(platform, tx * 8, ty * 8)->dir = 1;
+            } else {
+                init_object((type) (tile), tx * 8, ty * 8);
             }
         }
     }
-   
+
     if(!is_title()) {
         new RoomTitle(0, 0);
     }
@@ -1197,7 +1197,7 @@ void _update() {
         }
     }
 
-    if (music_timer > 0) {
+    if(music_timer > 0) {
         music_timer -= 1;
         if(music_timer <= 0) {
             //music(10, 0, 7);
@@ -1233,24 +1233,22 @@ void _update() {
     }
 
     // update each object
-    for(auto obj : objects) {
+    for(auto obj: objects) {
         obj->move(obj->spd.x, obj->spd.y);
         obj->update();
     }
 
     // start game
     if(is_title()) {
-        if (not start_game and (btn(k_jump) or btn(k_dash)))
-        {
+        if(not start_game and (btn(k_jump) or btn(k_dash))) {
             //music(-1);
             start_game_flash = 50;
             start_game = true;
             //sfx(38);
         }
-        if (start_game) {
+        if(start_game) {
             start_game_flash -= 1;
-            if(start_game_flash <= -30)
-            {
+            if(start_game_flash <= -30) {
                 begin_game();
             }
         }
@@ -1260,80 +1258,80 @@ void _update() {
 // drawing functions //
 ///////////////////////
 void _draw() {
-    if(freeze>0) return;
-   
+    if(freeze > 0) return;
+
     // reset all palette values
     pal();
-   
+
     // start game flash
-    if (start_game) {
-        int c=10;
-        if (start_game_flash>10) {
-            if (frames%10<5) {
-                c=7;
+    if(start_game) {
+        int c = 10;
+        if(start_game_flash > 10) {
+            if(frames % 10 < 5) {
+                c = 7;
             }
-        } else if (start_game_flash>5) {
-            c=2;
-        } else if (start_game_flash>0) {
+        } else if(start_game_flash > 5) {
+            c = 2;
+        } else if(start_game_flash > 0) {
             c = 1;
         } else {
-            c=0;
+            c = 0;
         }
-        if (c<10) {
-            pal(6,c);
-            pal(12,c);
-            pal(13,c);
-            pal(5,c);
-            pal(1,c);
-            pal(7,c);
+        if(c < 10) {
+            pal(6, c);
+            pal(12, c);
+            pal(13, c);
+            pal(5, c);
+            pal(1, c);
+            pal(7, c);
         }
     }
 
     // clear screen
     int bg_col = 0;
-    if (flash_bg) {
-        bg_col = frames/5;
-    } else if (new_bg) {
-        bg_col=2;
+    if(flash_bg) {
+        bg_col = frames / 5;
+    } else if(new_bg) {
+        bg_col = 2;
     }
-    rectfill(0,0,128,128,bg_col);
+    rectfill(0, 0, 128, 128, bg_col);
 
     // clouds
-    if (not is_title()) {
-        for(Cloud &c : clouds) {
+    if(not is_title()) {
+        for(Cloud &c: clouds) {
             c.x += c.spd;
-            rectfill(c.x,c.y,c.x+c.w,c.y+4+(1-c.w/64)*12,new_bg ? 14 : 1);
-            if (c.x > 128 ) {
+            rectfill(c.x, c.y, c.x + c.w, c.y + 4 + (1 - c.w / 64) * 12, new_bg ? 14 : 1);
+            if(c.x > 128) {
                 c.x = -c.w;
-                c.y=rnd(128-8);
+                c.y = rnd(128 - 8);
             }
         }
     }
 
     // draw bg terrain
-    map(room.x * 16,room.y * 16,0,0,16,16,2);
+    map(room.x * 16, room.y * 16, 0, 0, 16, 16, 2);
 
     // platforms/big chest
-    for(auto o : objects) {
-        if (o->type==platform or o->type==big_chest) {
+    for(auto o: objects) {
+        if(o->type == platform or o->type == big_chest) {
             o->draw();
         }
     }
 
     // draw terrain
-    int off=is_title() ? -4 : 0;
-    map(room.x*16,room.y * 16,off,0,16,16,1);
-   
+    int off = is_title() ? -4 : 0;
+    map(room.x * 16, room.y * 16, off, 0, 16, 16, 1);
+
     // draw objects
-    for(auto o : objects) {
-        if (o->type!=platform and o->type!=big_chest) {
+    for(auto o: objects) {
+        if(o->type != platform and o->type != big_chest) {
             o->draw();
         }
     };
 
     // draw fg terrain
-    map(room.x * 16,room.y * 16,0,0,16,16,3);
-   
+    map(room.x * 16, room.y * 16, 0, 0, 16, 16, 3);
+
     // particles
     // todo
 /*    foreach(particles, function(p)
@@ -1346,7 +1344,7 @@ void _draw() {
             p.y=rnd(128)
         }
     })*/
-   
+
     // dead particles
 /*    foreach(dead_particles, function(p)
         p.x += p.spd.x
@@ -1355,34 +1353,34 @@ void _draw() {
         if (p.t <= 0 ) { del(dead_particles,p) }
         rectfill(p.x-p.t/5,p.y-p.t/5,p.x+p.t/5,p.y+p.t/5,14+p.t%2)
     })*/
-   
+
     // credits
-    if (is_title()) {
+    if(is_title()) {
         // todo: keys
-        print("x+c",58,80,5);
-        print("matt thorson",42,96,5);
-        print("noel berry",46,102,5);
+        print("x+c", 58, 80, 5);
+        print("matt thorson", 42, 96, 5);
+        print("noel berry", 46, 102, 5);
         // todo: porting credits
     }
-   
-    if (level_index()==30) {
+
+    if(level_index() == 30) {
         Object *p = nullptr;
-        for (auto o : objects) {
-            if (o->type==player) {
+        for(auto o: objects) {
+            if(o->type == player) {
                 p = o;
                 break;
             }
         }
-        if (p!=nullptr) {
-            int diff=min(24,40-abs(p->x+4-64));
-            rectfill(0,0,diff,128,0);
-            rectfill(128-diff,0,128,128,0);
+        if(p != nullptr) {
+            int diff = min(24, 40 - abs(p->x + 4 - 64));
+            rectfill(0, 0, diff, 128, 0);
+            rectfill(128 - diff, 0, 128, 128, 0);
         }
     }
 }
 
 void Object::draw() {
-    spr(this->sprite, this->x, this->y, 1, 1, this->flip.x, this->flip.y);
+    spr(sprite, x, y, 1, 1, flip.x, flip.y);
 }
 
 void draw_time(int x, int y) {
@@ -1406,13 +1404,13 @@ int clamp(int val, int a, int b) {
 }
 
 int appr(int val, int target, int amount) {
- return val > target 
-     ? max(val - amount, target)
-     : min(val + amount, target);
+    return val > target
+           ? max(val - amount, target)
+           : min(val + amount, target);
 }
 
 int sign(int v) {
-    return v>0 ? 1 : v<0 ? -1 : 0;
+    return v > 0 ? 1 : v < 0 ? -1 : 0;
 }
 
 bool maybe() {
@@ -1420,11 +1418,11 @@ bool maybe() {
 }
 
 bool solid_at(int x, int y, int w, int h) {
- return tile_flag_at(x,y,w,h,0);
+    return tile_flag_at(x, y, w, h, 0);
 }
 
 bool ice_at(int x, int y, int w, int h) {
- return tile_flag_at(x,y,w,h,4);
+    return tile_flag_at(x, y, w, h, 4);
 }
 
 bool tile_flag_at(int x, int y, int w, int h, uint8_t flag) {
@@ -1439,7 +1437,7 @@ bool tile_flag_at(int x, int y, int w, int h, uint8_t flag) {
 }
 
 uint8_t tile_at(int x, int y) {
- return mget(room.x * 16 + x, room.y * 16 + y);
+    return mget(room.x * 16 + x, room.y * 16 + y);
 }
 
 bool spikes_at(int x, int y, int w, int h, subpixel xspd, subpixel yspd) {
