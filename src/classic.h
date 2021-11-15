@@ -28,24 +28,25 @@ struct Cloud {
 };
 
 enum type {
-    player_spawn = 1,
-    spring = 18,
-    balloon = 22,
-    fall_floor = 23,
-    smoke = 29,
-    fruit = 26,
-    fly_fruit = 28,
-    fake_wall = 64,
-    key = 8,
-    chest = 20,
-    platform = 11,
-    platform_right = 12,
-    message = 86,
-    big_chest = 96,
-    flag = 128,
-    player,
-    NUM_TYPES
+    PLAYER_SPAWN = 1,
+    SPRING = 18,
+    BALLOON = 22,
+    FALL_FLOOR = 23,
+    SMOKE = 29,
+    FRUIT = 26,
+    FLY_FRUIT = 28,
+    FAKE_WALL = 64,
+    KEY = 8,
+    CHEST = 20,
+    PLATFORM = 11,
+    PLATFORM_RIGHT = 12,
+    MESSAGE = 86,
+    BIG_CHEST = 96,
+    FLAG = 128,
+    PLAYER
 };
+
+class Player;
 
 class Object {
 public:
@@ -73,7 +74,9 @@ public:
     bool is_solid(int ox, int oy);
     bool is_ice(int ox, int oy);
     Object *collide(enum type type, int ox, int oy);
+    Player *collide_player(int ox, int oy);
     bool check(enum type type, int ox,int oy);
+    bool check_player(int ox,int oy);
     void move_x(int amount, int start);
     void move_y(int amount);
 };
@@ -93,6 +96,7 @@ public:
     bool was_on_ground;
 
     Player(int x, int y);
+    ~Player() override;
     void update() override;
     void draw() override;
 

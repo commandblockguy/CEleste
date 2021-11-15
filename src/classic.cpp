@@ -18,6 +18,8 @@ struct vec2i room = {0, 0};
 tinystl::vector<Object *> objects = {};
 Cloud clouds[NUM_CLOUDS];
 
+Player *player = nullptr;
+
 int freeze = 0;
 int shake = 0;
 bool will_restart = false;
@@ -126,8 +128,13 @@ Player::Player(int x, int y) : Object(x, y) {
     hitbox = {.x=1, .y=3, .w=6, .h=5};
     spr_off = 0;
     was_on_ground = false;
-    type = player;
+    type = PLAYER;
     create_hair(this);
+    player = this;
+}
+
+Player::~Player() {
+    player = nullptr;
 }
 
 void Player::update() {
@@ -385,7 +392,7 @@ PlayerSpawn::PlayerSpawn(int x, int y) : Object(x, y) {
     state = 0;
     delay = 0;
     solids = false;
-    type = player_spawn;
+    type = PLAYER_SPAWN;
     create_hair(this);
 }
 
@@ -433,8 +440,8 @@ void PlayerSpawn::draw() {
 Spring::Spring(int x, int y) : Object(x, y) {
     hide_in = 0;
     hide_for = 0;
-    type = spring;
-    sprite = spring;
+    type = SPRING;
+    sprite = SPRING;
 }
 
 void Spring::update() {
@@ -445,7 +452,7 @@ void Spring::update() {
             delay = 0;
         }
     } else if(sprite == 18) {
-        auto hit = (Player *) collide(player, 0, 0);
+        Player *hit = collide_player(0, 0);
         if(hit != nullptr and hit->spd.y >= 0) {
             sprite = 19;
             hit->y = y - 4;
@@ -456,7 +463,7 @@ void Spring::update() {
             new Smoke(x, y);
 
             // breakable below us
-            auto below = (FallFloor *) collide(fall_floor, 0, 1);
+            auto below = (FallFloor *) collide(FALL_FLOOR, 0, 1);
             if(below != nullptr) {
                 below->break_floor();
             }
@@ -488,8 +495,8 @@ Balloon::Balloon(int x, int y) : Object(x, y) {
     start = y;
     timer = 0;
     hitbox = {.x=-1, .y=-1, .w=10, .h=10};
-    type = balloon;
-    sprite = balloon;
+    type = BALLOON;
+    sprite = BALLOON;
 }
 
 void Balloon::update() {
@@ -497,7 +504,7 @@ void Balloon::update() {
         // todo
         //offset+=0.01;
         //y=start+sin(offset)*2;
-        auto hit = (Player *) collide(player, 0, 0);
+        Player *hit = collide_player(0, 0);
         if(hit != nullptr and hit->djump < max_djump) {
             //psfx(6);
             new Smoke(x, y);
@@ -524,13 +531,13 @@ void Balloon::draw() {
 FallFloor::FallFloor(int x, int y) : Object(x, y) {
     state = 0;
     solid = true;
-    type = fall_floor;
+    type = FALL_FLOOR;
 }
 
 void FallFloor::update() {
     // idling
     if(state == 0) {
-        if(check(player, 0, -1) or check(player, -1, 0) or check(player, 1, 0)) {
+        if(check_player(0, -1) or check_player(-1, 0) or check_player(1, 0)) {
             break_floor();
         }
         // shaking
@@ -544,7 +551,7 @@ void FallFloor::update() {
         // invisible, waiting to reset
     } else if(state == 2) {
         delay -= 1;
-        if(delay <= 0 and not check(player, 0, 0)) {
+        if(delay <= 0 and not check_player(0, 0)) {
             //psfx(7);
             state = 0;
             collideable = true;
@@ -569,7 +576,7 @@ void FallFloor::break_floor() {
         state = 1;
         delay = 15;//how long until it falls
         new Smoke(x, y);
-        auto hit = (Spring *) collide(spring, 0, -1);
+        auto hit = (Spring *) collide(SPRING, 0, -1);
         if(hit != nullptr) {
             hit->break_spring();
         }
@@ -585,7 +592,7 @@ Smoke::Smoke(int x, int y) : Object(x, y) {
     flip.x = maybe();
     flip.y = maybe();
     solids = false;
-    type = smoke;
+    type = SMOKE;
 }
 
 void Smoke::update() {
@@ -602,11 +609,11 @@ Fruit::Fruit(int x, int y) : Object(x, y) {
     start = y;
     off = 0;
     sprite = 26;
-    type = fruit;
+    type = FRUIT;
 }
 
 void Fruit::update() {
-    auto hit = (Player *) collide(player, 0, 0);
+    Player *hit = collide_player(0, 0);
     if(hit != nullptr) {
         hit->djump = max_djump;
         sfx_timer = 20;
@@ -627,8 +634,8 @@ FlyFruit::FlyFruit(int x, int y) : Object(x, y) {
     step = 0.5;
     solids = false;
     sfx_delay = 8;
-    type = fly_fruit;
-    sprite = fly_fruit;
+    type = FLY_FRUIT;
+    sprite = FLY_FRUIT;
 }
 
 void FlyFruit::update() {
@@ -655,7 +662,7 @@ void FlyFruit::update() {
         //spd.y=sin(step)*0.5;
     }
     // collect
-    auto hit = (Player *) collide(player, 0, 0);
+    Player *hit = collide_player(0, 0);
     if(hit != nullptr) {
         hit->djump = max_djump;
         sfx_timer = 20;
@@ -705,12 +712,12 @@ void LifeUp::draw() {
 }
 
 FakeWall::FakeWall(int x, int y) : Object(x, y) {
-    type = fake_wall;
+    type = FAKE_WALL;
 };
 
 void FakeWall::update() {
     hitbox = {.x=-1, .y=-1, .w=18, .h=18};
-    auto *hit = (Player *) collide(player, 0, 0);
+    Player *hit = collide_player(0, 0);
     if(hit != nullptr and hit->dash_effect_time > 0) {
         hit->spd.x = -sign(hit->spd.x) * 3 / 2;
         hit->spd.y = SP(-1.5);
@@ -735,8 +742,8 @@ void FakeWall::draw() {
 }
 
 Key::Key(int x, int y) : Object(x, y) {
-    type = key;
-    sprite = key;
+    type = KEY;
+    sprite = KEY;
 }
 
 void Key::update() {
@@ -747,7 +754,7 @@ void Key::update() {
     if(is == 10 and is != was) {
         flip.x = not flip.x;
     }
-    if(check(player, 0, 0)) {
+    if(check_player(0, 0)) {
         //sfx(23)
         sfx_timer = 10;
         has_key = true;
@@ -759,8 +766,8 @@ Chest::Chest(int x, int y) : Object(x, y) {
     x -= 4;
     start = x;
     timer = 20;
-    type = chest;
-    sprite = chest;
+    type = CHEST;
+    sprite = CHEST;
 }
 
 void Chest::update() {
@@ -782,7 +789,7 @@ Platform::Platform(int x, int y, int dir) : Object(x, y) {
     hitbox.w = 16;
     last = x;
     this->dir = dir;
-    type = platform;
+    type = PLATFORM;
 }
 
 void Platform::update() {
@@ -792,8 +799,8 @@ void Platform::update() {
     } else if(x > 128) {
         x = -16;
     }
-    if(not check(player, 0, 0)) {
-        Object *hit = collide(player, 0, -1);
+    if(not check_player(0, 0)) {
+        Object *hit = collide(PLAYER, 0, -1);
         if(hit != nullptr) {
             hit->move_x(x - last, 1);
         }
@@ -807,12 +814,12 @@ void Platform::draw() {
 }
 
 Message::Message(int x, int y) : Object(x, y) {
-    type = message;
+    type = MESSAGE;
 }
 
 void Message::draw() {
     const char *text = "-- celeste mountain --#this memorial to those# perished on the climb";
-    if(check(player, 4, 0)) {
+    if(check_player(4, 0)) {
         if(index / 2 < strlen(text)) {
             index += 1;
             // sfx deleted here
@@ -836,12 +843,12 @@ void Message::draw() {
 BigChest::BigChest(int x, int y) : Object(x, y) {
     state = 0;
     hitbox.w = 16;
-    type = big_chest;
+    type = BIG_CHEST;
 }
 
 void BigChest::draw() {
     if(state == 0) {
-        auto hit = (Player *) collide(player, 0, 8);
+        Player *hit = collide_player(0, 8);
         if(hit != nullptr and hit->is_solid(0, 1)) {
             //music(-1,500,7);
             //sfx(37);
@@ -893,7 +900,7 @@ Orb::Orb(int x, int y) : Object(x, y) {
 
 void Orb::draw() {
     spd.y = appr(spd.y, 0, SP(0.5));
-    auto hit = (Player *) collide(player, 0, 0);
+    Player *hit = collide_player(0, 0);
     if(spd.y == 0 and hit != nullptr) {
         music_timer = 45;
         //sfx(51);
@@ -921,7 +928,7 @@ Flag::Flag(int x, int y) : Object(x, y) {
             score += 1;
         }
     }
-    type = flag;
+    type = FLAG;
 }
 
 void Flag::draw() {
@@ -935,7 +942,7 @@ void Flag::draw() {
         draw_time(49, 16);
         print("deaths:", 48, 24, 7);
         print_int(deaths);
-    } else if(check(player, 0, 0)) {
+    } else if(check_player(0, 0)) {
         //sfx(55);
         sfx_timer = 30;
         show = true;
@@ -976,35 +983,35 @@ Object *init_object(type type, int x, int y) {
     bool has_fruit = got_fruit[level_index()];
     // todo: populate
     switch(type) {
-        case player_spawn:
+        case PLAYER_SPAWN:
             return new PlayerSpawn(x, y);
-        case spring:
+        case SPRING:
             return new Spring(x, y);
-        case balloon:
+        case BALLOON:
             return new Balloon(x, y);
-        case fall_floor:
+        case FALL_FLOOR:
             return new FallFloor(x, y);
-        case smoke:
+        case SMOKE:
             return new Smoke(x, y);
-        case fruit:
+        case FRUIT:
             return has_fruit ? nullptr : new Fruit(x, y);
-        case fly_fruit:
+        case FLY_FRUIT:
             return has_fruit ? nullptr : new FlyFruit(x, y);
-        case fake_wall:
+        case FAKE_WALL:
             return has_fruit ? nullptr : new FakeWall(x, y);
-        case key:
+        case KEY:
             return has_fruit ? nullptr : new Key(x, y);
-        case chest:
+        case CHEST:
             return has_fruit ? nullptr : new Chest(x, y);
-        case platform:
+        case PLATFORM:
             return new Platform(x, y, -1);
-        case platform_right:
+        case PLATFORM_RIGHT:
             return new Platform(x, y, 1);
-        case message:
+        case MESSAGE:
             return new Message(x, y);
-        case big_chest:
+        case BIG_CHEST:
             return new BigChest(x, y);
-        case flag:
+        case FLAG:
             return new Flag(x, y);
         default:
             return nullptr;
@@ -1030,12 +1037,12 @@ Object::Object(int x, int y) {
 
 
 bool Object::is_solid(int ox, int oy) {
-    if(oy > 0 and not check(platform, ox, 0) and check(platform, ox, oy)) {
+    if(oy > 0 and not check(PLATFORM, ox, 0) and check(PLATFORM, ox, oy)) {
         return true;
     }
     return solid_at(x + hitbox.x + ox, y + hitbox.y + oy, hitbox.w, hitbox.h)
-           or check(fall_floor, ox, oy)
-           or check(fake_wall, ox, oy);
+           or check(FALL_FLOOR, ox, oy)
+           or check(FAKE_WALL, ox, oy);
 }
 
 
@@ -1056,8 +1063,23 @@ Object *Object::collide(enum type type, int ox, int oy) {
     return nullptr;
 }
 
+Player *Object::collide_player(int ox, int oy) {
+    if(player != nullptr and player != this and
+       player->x + 1 + 6 > x + hitbox.x + ox and
+       player->y + 3 + 5 > y + hitbox.y + oy and
+       player->x + 1 < x + hitbox.x + hitbox.w + ox and
+       player->y + 3 < y + hitbox.y + hitbox.h + oy) {
+        return player;
+    }
+    return nullptr;
+}
+
 bool Object::check(enum type type, int ox, int oy) {
     return collide(type, ox, oy) != nullptr;
+}
+
+bool Object::check_player(int ox, int oy) {
+    return collide_player(ox, oy) != nullptr;
 }
 
 void Object::move(subpixel ox, subpixel oy) {
@@ -1329,7 +1351,7 @@ void _draw() {
 
     // platforms/big chest
     for(auto o: objects) {
-        if(o->type == platform or o->type == big_chest) {
+        if(o->type == PLATFORM or o->type == BIG_CHEST) {
             o->draw();
         }
     }
@@ -1340,7 +1362,7 @@ void _draw() {
 
     // draw objects
     for(auto o: objects) {
-        if(o->type != platform and o->type != big_chest) {
+        if(o->type != PLATFORM and o->type != BIG_CHEST) {
             o->draw();
         }
     };
@@ -1382,7 +1404,7 @@ void _draw() {
     if(level_index() == 30) {
         Object *p = nullptr;
         for(auto o: objects) {
-            if(o->type == player) {
+            if(o->type == PLAYER) {
                 p = o;
                 break;
             }
