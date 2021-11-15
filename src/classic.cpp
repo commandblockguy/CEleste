@@ -357,8 +357,8 @@ void Player::draw() {
 
 void create_hair(Object *obj) {
     for(int i = 0; i <= 4; i++) {
-        obj->hair[i].x = obj->x;
-        obj->hair[i].y = obj->y;
+        obj->hair[i].x = SP(obj->x);
+        obj->hair[i].y = SP(obj->y);
         obj->hair[i].size = max(1, min(2, 3 - i));
     }
 }
@@ -369,11 +369,11 @@ void set_hair_color(int djump) {
 }
 
 void draw_hair(Object *obj, int facing) {
-    struct vec2i last = {.x=obj->x + 4 - facing * 2, .y=obj->y + (btn(k_down) ? 4 : 3)};
+    struct vec2i last = {.x=SP(obj->x + 4 - facing * 2), .y=SP(obj->y + (btn(k_down) ? 4 : 3))};
     for(int i = 0; i < 5; i++) {
         obj->hair[i].x += (last.x - obj->hair[i].x) * 2 / 3;
         obj->hair[i].y += ((last.y - obj->hair[i].y) * 2 + 1) / 3;
-        circfill(obj->hair[i].x, obj->hair[i].y, obj->hair[i].size, 8);
+        circfill(PIX(obj->hair[i].x), PIX(obj->hair[i].y), obj->hair[i].size, 8);
         last.x = obj->hair[i].x;
         last.y = obj->hair[i].y;
     }
