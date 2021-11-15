@@ -4,7 +4,7 @@
 
 typedef int subpixel;
 #define SUBPIXEL_SCALE 256
-#define SP(x) ((x) * SUBPIXEL_SCALE)
+#define SP(x) ((int)((x) * SUBPIXEL_SCALE))
 #define PIX(x) ((int)((x) / SUBPIXEL_SCALE))
 
 struct vec2i {
@@ -29,14 +29,21 @@ struct Cloud {
 
 enum type {
     player_spawn = 1,
-    platform = 11,
-    room_title,
-    player,
-    big_chest,
-    smoke,
-    fall_floor,
-    fake_wall = 64,
+    spring = 18,
+    balloon = 22,
+    fall_floor = 23,
+    smoke = 29,
     fruit = 26,
+    fly_fruit = 28,
+    fake_wall = 64,
+    key = 8,
+    chest = 20,
+    platform = 11,
+    platform_right = 12,
+    message = 86,
+    big_chest = 96,
+    flag = 128,
+    player,
     NUM_TYPES
 };
 
@@ -53,8 +60,6 @@ public:
     int y;
     struct {int x; int y; int w; int h;} hitbox;
     uint8_t type;
-
-    int dir; // todo: platform only
 
     struct {int x; int y; int size; } hair[5];
 
@@ -105,6 +110,37 @@ public:
     void draw() override;
 };
 
+class Spring : public Object {
+public:
+    Spring(int x, int y);
+    int hide_in;
+    int hide_for;
+    int delay;
+    void update() override;
+    void break_spring();
+};
+
+class Balloon : public Object {
+public:
+    Balloon(int x, int y);
+    int offset;
+    int timer;
+    int start;
+    void update() override;
+    void draw() override;
+};
+
+class FallFloor : public Object {
+public:
+    FallFloor(int x, int y);
+    int state;
+    int delay;
+    bool solid;
+    void update() override;
+    void draw() override;
+    void break_floor();
+};
+
 class Smoke : public Object {
 public:
     Smoke(int x, int y);
@@ -120,6 +156,17 @@ public:
     void update() override;
 };
 
+class FlyFruit : public Object {
+public:
+    FlyFruit(int x, int y);
+    bool fly;
+    int start;
+    float step;
+    int sfx_delay;
+    void update() override;
+    void draw() override;
+};
+
 class LifeUp : public Object {
 public:
     LifeUp(int x, int y);
@@ -133,6 +180,59 @@ class FakeWall : public Object {
 public:
     FakeWall(int x, int y);
     void update() override;
+    void draw() override;
+};
+
+class Key : public Object {
+public:
+    Key(int x, int y);
+    void update() override;
+};
+
+class Chest : public Object {
+public:
+    Chest(int x, int y);
+    int start;
+    int timer;
+    void update() override;
+};
+
+class Platform : public Object {
+public:
+    Platform(int x, int y, int dir);
+    int dir;
+    int last;
+    void update() override;
+    void draw() override;
+};
+
+class Message : public Object {
+public:
+    Message(int x, int y);
+    unsigned index;
+    void draw() override;
+};
+
+class BigChest : public Object {
+    // heh heh
+public:
+    BigChest(int x, int y);
+    int state;
+    int timer;
+    void draw() override;
+};
+
+class Orb : public Object {
+public:
+    Orb(int x, int y);
+    void draw() override;
+};
+
+class Flag : public Object {
+public:
+    Flag(int x, int y);
+    int score;
+    bool show;
     void draw() override;
 };
 

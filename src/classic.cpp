@@ -3,6 +3,8 @@
 #include <TINYSTL/vector.h>
 #include <debug.h>
 #include <cstdlib>
+#include <cstring>
+#include <keypadc.h>
 #include "emu.h"
 
 // ~celeste~
@@ -428,155 +430,152 @@ void PlayerSpawn::draw() {
     unset_hair_color();
 }
 
-/*
+Spring::Spring(int x, int y) : Object(x, y) {
+    hide_in = 0;
+    hide_for = 0;
+    type = spring;
+    sprite = spring;
+}
 
-spring = {
-    tile=18,
-    init=function(this)
-        hide_in=0
-        hide_for=0
-    },
-    update=function(this)
-        if (hide_for>0 ) {
-            hide_for-=1
-            if (hide_for<=0 ) {
-                spr=18
-                delay=0
-            }
-        } else if (spr==18 ) {
-            local hit = collide(player,0,0)
-            if (hit !=nullptr and hit.spd.y>=0 ) {
-                spr=19
-                hit.y=y-4
-                hit.spd.x*=0.2
-                hit.spd.y=-3
-                hit.djump=max_djump
-                delay=10
-                init_object(smoke,x,y)
-               
-                // breakable below us
-                local below=collide(fall_floor,0,1)
-                if (below!=nullptr ) {
-                    break_fall_floor(below)
-                }
-               
-                psfx(8)
-            }
-        } else if (delay>0 ) {
-            delay-=1
-            if (delay<=0 ) { 
-                spr=18 
-            }
+void Spring::update() {
+    if(hide_for > 0) {
+        hide_for -= 1;
+        if(hide_for <= 0) {
+            sprite = 18;
+            delay = 0;
         }
-        // begin hiding
-        if (hide_in>0 ) {
-            hide_in-=1
-            if (hide_in<=0 ) {
-                hide_for=60
-                spr=0
+    } else if(sprite == 18) {
+        auto hit = (Player *) collide(player, 0, 0);
+        if(hit != nullptr and hit->spd.y >= 0) {
+            sprite = 19;
+            hit->y = y - 4;
+            hit->spd.x /= 5;
+            hit->spd.y = SP(-3);
+            hit->djump = max_djump;
+            delay = 10;
+            new Smoke(x, y);
+
+            // breakable below us
+            auto below = (FallFloor *) collide(fall_floor, 0, 1);
+            if(below != nullptr) {
+                below->break_floor();
             }
+
+            //psfx(8);
+        }
+    } else if(delay > 0) {
+        delay -= 1;
+        if(delay <= 0) {
+            sprite = 18;
+        }
+    }
+    // begin hiding
+    if(hide_in > 0) {
+        hide_in -= 1;
+        if(hide_in <= 0) {
+            hide_for = 60;
+            sprite = 0;
         }
     }
 }
-add(types,spring)
 
-function break_spring(obj)
-    obj->hide_in=15
+void Spring::break_spring() {
+    hide_in = 15;
 }
 
-balloon = {
-    tile=22,
-    init=function(this) 
-        offset=rnd(1)
-        start=y
-        timer=0
-        hitbox={x=-1,y=-1,w=10,h=10}
-    },
-    update=function(this) 
-        if (spr==22 ) {
-            offset+=0.01
-            y=start+sin(offset)*2
-            local hit = collide(player,0,0)
-            if (hit!=nullptr and hit.djump<max_djump ) {
-                psfx(6)
-                init_object(smoke,x,y)
-                hit.djump=max_djump
-                spr=0
-                timer=60
-            }
-        } else if (timer>0 ) {
-            timer-=1
-        else 
-         psfx(7)
-         init_object(smoke,x,y)
-            spr=22 
+Balloon::Balloon(int x, int y) : Object(x, y) {
+    //offset=rnd(1);
+    start = y;
+    timer = 0;
+    hitbox = {.x=-1, .y=-1, .w=10, .h=10};
+    type = balloon;
+    sprite = balloon;
+}
+
+void Balloon::update() {
+    if(sprite == 22) {
+        // todo
+        //offset+=0.01;
+        //y=start+sin(offset)*2;
+        auto hit = (Player *) collide(player, 0, 0);
+        if(hit != nullptr and hit->djump < max_djump) {
+            //psfx(6);
+            new Smoke(x, y);
+            hit->djump = max_djump;
+            sprite = 0;
+            timer = 60;
         }
-    },
-    draw=function(this)
-        if (spr==22 ) {
-            spr(13+(offset*8)%3,x,y+6)
-            spr(spr,x,y)
-        }
+    } else if(timer > 0) {
+        timer -= 1;
+    } else {
+        //psfx(7)
+        new Smoke(x, y);
+        sprite = 22;
     }
 }
-add(types,balloon)
 
-fall_floor = {
-    tile=23,
-    init=function(this)
-        state=0
-        solid=true
-    },
-    update=function(this)
-        // idling
-        if (state == 0 ) {
-            if check(player,0,-1) or check(player,-1,0) or check(player,1,0) {
-                break_fall_floor(this)
-            }
+void Balloon::draw() {
+    if(sprite == 22) {
+        spr(13 + (offset * 8) % 3, x, y + 6);
+        spr(sprite, x, y);
+    }
+}
+
+FallFloor::FallFloor(int x, int y) : Object(x, y) {
+    state = 0;
+    solid = true;
+    type = fall_floor;
+}
+
+void FallFloor::update() {
+    // idling
+    if(state == 0) {
+        if(check(player, 0, -1) or check(player, -1, 0) or check(player, 1, 0)) {
+            break_floor();
+        }
         // shaking
-        } else if (state==1 ) {
-            delay-=1
-            if (delay<=0 ) {
-                state=2
-                delay=60//how long it hides for
-                collideable=false
-            }
+    } else if(state == 1) {
+        delay -= 1;
+        if(delay <= 0) {
+            state = 2;
+            delay = 60;//how long it hides for
+            collideable = false;
+        }
         // invisible, waiting to reset
-        } else if (state==2 ) {
-            delay-=1
-            if delay<=0 and not check(player,0,0) {
-                psfx(7)
-                state=0
-                collideable=true
-                init_object(smoke,x,y)
-            }
-        }
-    },
-    draw=function(this)
-        if (state!=2 ) {
-            if (state!=1 ) {
-                spr(23,x,y)
-            else
-                spr(23+(15-delay)/5,x,y)
-            }
+    } else if(state == 2) {
+        delay -= 1;
+        if(delay <= 0 and not check(player, 0, 0)) {
+            //psfx(7);
+            state = 0;
+            collideable = true;
+            new Smoke(x, y);
         }
     }
 }
-add(types,fall_floor)
 
-function break_fall_floor(obj)
- if (obj->state==0 ) {
-     psfx(15)
-        obj->state=1
-        obj->delay=15//how long until it falls
-        init_object(smoke,obj->x,obj->y)
-        local hit=obj->collide(spring,0,-1)
-        if (hit!=nullptr ) {
-            break_spring(hit)
+void FallFloor::draw() {
+    if(state != 2) {
+        if(state != 1) {
+            spr(23, x, y);
+        } else {
+            spr(23 + (15 - delay) / 5, x, y);
         }
     }
 }
-*/
+
+void FallFloor::break_floor() {
+    if(state == 0) {
+        //psfx(15)
+        state = 1;
+        delay = 15;//how long until it falls
+        new Smoke(x, y);
+        auto hit = (Spring *) collide(spring, 0, -1);
+        if(hit != nullptr) {
+            hit->break_spring();
+        }
+    }
+}
+
 Smoke::Smoke(int x, int y) : Object(x, y) {
     sprite = 29;
     spd.y = SP(-0.1);
@@ -603,6 +602,7 @@ Fruit::Fruit(int x, int y) : Object(x, y) {
     start = y;
     off = 0;
     sprite = 26;
+    type = fruit;
 }
 
 void Fruit::update() {
@@ -613,75 +613,74 @@ void Fruit::update() {
         //sfx(13);
         got_fruit[level_index()] = true;
         new LifeUp(x, y);
-        destroy_object(this);
+        delete this;
+    } else {
+        off += 1;
+        y = start;
+        // todo: y = start + sin(off / 40) * 5 / 2;
     }
-    off += 1;
-    y = start;
-    // todo: y = start + sin(off / 40) * 5 / 2;
 }
 
-/*
-fly_fruit={
-    tile=28,
-    if_not_fruit=true,
-    init=function(this) 
-        start=y
-        fly=false
-        step=0.5
-        solids=false
-        sfx_delay=8
-    },
-    update=function(this)
-        //fly away
-        if (fly ) {
-         if (sfx_delay>0 ) {
-          sfx_delay-=1
-          if (sfx_delay<=0 ) {
-           sfx_timer=20
-           sfx(14)
-          }
-         }
-            spd.y=appr(spd.y,-3.5,0.25)
-            if (y<-16 ) {
-                destroy_object(this)
+FlyFruit::FlyFruit(int x, int y) : Object(x, y) {
+    start = y;
+    fly = false;
+    step = 0.5;
+    solids = false;
+    sfx_delay = 8;
+    type = fly_fruit;
+    sprite = fly_fruit;
+}
+
+void FlyFruit::update() {
+    //fly away
+    if(fly) {
+        if(sfx_delay > 0) {
+            sfx_delay -= 1;
+            if(sfx_delay <= 0) {
+                sfx_timer = 20;
+                //sfx(14);
             }
+        }
+        spd.y = appr(spd.y, SP(-3.5), SP(0.25));
+        if(y < -16) {
+            delete this;
+        }
         // wait
-        else
-            if (has_dashed ) {
-                fly=true
-            }
-            step+=0.05
-            spd.y=sin(step)*0.5
+    } else {
+        if(has_dashed) {
+            fly = true;
         }
-        // collect
-        local hit=collide(player,0,0)
-        if (hit!=nullptr ) {
-         hit.djump=max_djump
-            sfx_timer=20
-            sfx(13)
-            got_fruit[level_index()] = true
-            init_object(lifeup,x,y)
-            destroy_object(this)
-        }
-    },
-    draw=function(this)
-        local off=0
-        if (not fly ) {
-            local dir=sin(step)
-            if (dir<0 ) {
-                off=1+max(0,sign(y-start))
-            }
-        else
-            off=(off+0.25)%3
-        }
-        spr(45+off,x-6,y-2,1,1,true,false)
-        spr(spr,x,y)
-        spr(45+off,x+6,y-2)
+        step += 0.05;
+        // todo
+        //spd.y=sin(step)*0.5;
+    }
+    // collect
+    auto hit = (Player *) collide(player, 0, 0);
+    if(hit != nullptr) {
+        hit->djump = max_djump;
+        sfx_timer = 20;
+        //sfx(13)
+        got_fruit[level_index()] = true;
+        new LifeUp(x, y);
+        delete this;
     }
 }
-add(types,fly_fruit)
 
-*/
+void FlyFruit::draw() {
+    int off = 0;
+    if(not fly) {
+        // todo
+//        int dir = sin(step);
+//        if(dir < 0) {
+//            off = 1 + max(0, sign(y - start));
+//        }
+    } else {
+//        off=(off+0.25)%3;
+    }
+    spr(45 + off, x - 6, y - 2, 1, 1, true, false);
+    spr(sprite, x, y);
+    spr(45 + off, x + 6, y - 2);
+}
 
 LifeUp::LifeUp(int x, int y) : Object(x, y) {
     spd.y = SP(-0.25);
@@ -729,226 +728,219 @@ void FakeWall::update() {
 }
 
 void FakeWall::draw() {
-    spr(64,x,y);
-    spr(65,x+8,y);
-    spr(80,x,y+8);
-    spr(81,x+8,y+8);
+    spr(64, x, y);
+    spr(65, x + 8, y);
+    spr(80, x, y + 8);
+    spr(81, x + 8, y + 8);
 }
 
-/*
+Key::Key(int x, int y) : Object(x, y) {
+    type = key;
+    sprite = key;
+}
 
-key={
-    tile=8,
-    if_not_fruit=true,
-    update=function(this)
-        local was=flr(spr)
-        spr=9+(sin(frames/30)+0.5)*1
-        local is=flr(spr)
-        if (is==10 and is!=was ) {
-            flip.x=not flip.x
-        }
-        if check(player,0,0) {
-            sfx(23)
-            sfx_timer=10
-            destroy_object(this)
-            has_key=true
-        }
+void Key::update() {
+    int was = sprite;
+    // todo
+    //sprite=9+(sin(frames/30)+0.5)*1;
+    int is = sprite;
+    if(is == 10 and is != was) {
+        flip.x = not flip.x;
     }
-}
-add(types,key)
-
-chest={
-    tile=20,
-    if_not_fruit=true,
-    init=function(this)
-        x-=4
-        start=x
-        timer=20
-    },
-    update=function(this)
-        if (has_key ) {
-            timer-=1
-            x=start-1+rnd(3)
-            if (timer<=0 ) {
-             sfx_timer=20
-             sfx(16)
-                init_object(fruit,x,y-4)
-                destroy_object(this)
-            }
-        }
-    }
-}
-add(types,chest)
-
-platform={
-    init=function(this)
-        x-=4
-        solids=false
-        hitbox.w=16
-        last=x
-    },
-    update=function(this)
-        spd.x=dir*0.65
-        if (x<-16 ) { x=128
-        } else if (x>128 ) { x=-16 }
-        if not check(player,0,0) {
-            local hit=collide(player,0,-1)
-            if (hit!=nullptr ) {
-                hit.move_x(x-last,1)
-            }
-        }
-        last=x
-    },
-    draw=function(this)
-        spr(11,x,y-1)
-        spr(12,x+8,y-1)
+    if(check(player, 0, 0)) {
+        //sfx(23)
+        sfx_timer = 10;
+        has_key = true;
+        delete this;
     }
 }
 
-message={
-    tile=86,
-    last=0,
-    draw=function(this)
-        text="-- celeste mountain --#this memorial to those# perished on the climb"
-        if check(player,4,0) {
-            if (index<#text ) {
-             index+=0.5
-                if (index>=last+1 ) {
-                 last+=1
-                 sfx(35)
-                }
-            }
-            off={x=8,y=96}
-            for i=1,index do
-                if sub(text,i,i)!="#" {
-                    rectfill(off.x-2,off.y-2,off.x+7,off.y+6 ,7)
-                    print(sub(text,i,i),off.x,off.y,0)
-                    off.x+=5
-                else
-                    off.x=8
-                    off.y+=7
-                }
-            }
-        else
-            index=0
-            last=0
-        }
-    }
+Chest::Chest(int x, int y) : Object(x, y) {
+    x -= 4;
+    start = x;
+    timer = 20;
+    type = chest;
+    sprite = chest;
 }
-add(types,message)
 
-big_chest={
-    tile=96,
-    init=function(this)
-        state=0
-        hitbox.w=16
-    },
-    draw=function(this)
-        if (state==0 ) {
-            local hit=collide(player,0,8)
-            if hit!=nullptr and hit.is_solid(0,1) {
-                music(-1,500,7)
-                sfx(37)
-                pause_player=true
-                hit.spd.x=0
-                hit.spd.y=0
-                state=1
-                init_object(smoke,x,y)
-                init_object(smoke,x+8,y)
-                timer=60
-                particles={}
-            }
-            spr(96,x,y)
-            spr(97,x+8,y)
-        } else if (state==1 ) {
-            timer-=1
-         shake=5
-         flash_bg=true
-            if timer<=45 and count(particles)<50 {
-                add(particles,{
-                    x=1+rnd(14),
-                    y=0,
-                    h=32+rnd(32),
-                    spd=8+rnd(8)
-                })
-            }
-            if (timer<0 ) {
-                state=2
-                particles={}
-                flash_bg=false
-                new_bg=true
-                init_object(orb,x+4,y+4)
-                pause_player=false
-            }
-            foreach(particles,function(p)
-                p.y+=p.spd
-                line(x+p.x,y+8-p.y,x+p.x,min(y+8-p.y+p.h,y+8),7)
-            })
-        }
-        spr(112,x,y+8)
-        spr(113,x+8,y+8)
-    }
-}
-add(types,big_chest)
-
-orb={
-    init=function(this)
-        spd.y=-4
-        solids=false
-        particles={}
-    },
-    draw=function(this)
-        spd.y=appr(spd.y,0,0.5)
-        local hit=collide(player,0,0)
-        if (spd.y==0 and hit!=nullptr ) {
-         music_timer=45
-            sfx(51)
-            freeze=10
-            shake=10
-            destroy_object(this)
-            max_djump=2
-            hit.djump=2
-        }
-       
-        spr(102,x,y)
-        local off=frames/30
-        for i=0,7 do
-            circfill(x+4+cos(off+i/8)*8,y+4+sin(off+i/8)*8,1,7)
+void Chest::update() {
+    if(has_key) {
+        timer -= 1;
+        x = start - 1 + rnd(3);
+        if(timer <= 0) {
+            sfx_timer = 20;
+            //sfx(16);
+            new Fruit(x, y - 4);
+            delete this;
         }
     }
 }
 
-flag = {
-    tile=118,
-    init=function(this)
-        x+=5
-        score=0
-        show=false
-        for i=1,count(got_fruit) do
-            if (got_fruit[i] ) {
-                score+=1
-            }
-        }
-    },
-    draw=function(this)
-        spr=118+(frames/5)%3
-        spr(spr,x,y)
-        if (show ) {
-            rectfill(32,2,96,31,0)
-            spr(26,55,6)
-            print("x"..score,64,9,7)
-            draw_time(49,16)
-            print("deaths:"..deaths,48,24,7)
-        } else if check(player,0,0) {
-            sfx(55)
-      sfx_timer=30
-            show=true
+Platform::Platform(int x, int y, int dir) : Object(x, y) {
+    x -= 4;
+    solids = false;
+    hitbox.w = 16;
+    last = x;
+    this->dir = dir;
+    type = platform;
+}
+
+void Platform::update() {
+    spd.x = dir * SP(0.65);
+    if(x < -16) {
+        x = 128;
+    } else if(x > 128) {
+        x = -16;
+    }
+    if(not check(player, 0, 0)) {
+        Object *hit = collide(player, 0, -1);
+        if(hit != nullptr) {
+            hit->move_x(x - last, 1);
         }
     }
+    last = x;
 }
-add(types,flag)
 
- */
+void Platform::draw() {
+    spr(11, x, y - 1);
+    spr(12, x + 8, y - 1);
+}
+
+Message::Message(int x, int y) : Object(x, y) {
+    type = message;
+}
+
+void Message::draw() {
+    const char *text = "-- celeste mountain --#this memorial to those# perished on the climb";
+    if(check(player, 4, 0)) {
+        if(index / 2 < strlen(text)) {
+            index += 1;
+            // sfx deleted here
+        }
+        vec2i off = {x = 8, y = 96};
+        for(unsigned i = 0; i < index / 2; i++) {
+            if(text[i] != '#') {
+                rectfill(off.x - 2, off.y - 2, off.x + 7, off.y + 6, 7);
+                print(text[i], off.x, off.y, 0);
+                off.x += 5;
+            } else {
+                off.x = 8;
+                off.y += 7;
+            }
+        }
+    } else {
+        index = 0;
+    }
+}
+
+BigChest::BigChest(int x, int y) : Object(x, y) {
+    state = 0;
+    hitbox.w = 16;
+    type = big_chest;
+}
+
+void BigChest::draw() {
+    if(state == 0) {
+        auto hit = (Player *) collide(player, 0, 8);
+        if(hit != nullptr and hit->is_solid(0, 1)) {
+            //music(-1,500,7);
+            //sfx(37);
+            pause_player = true;
+            hit->spd.x = 0;
+            hit->spd.y = 0;
+            state = 1;
+            new Smoke(x, y);
+            new Smoke(x + 8, y);
+            timer = 60;
+            //particles={};
+        }
+        spr(96, x, y);
+        spr(97, x + 8, y);
+    } else if(state == 1) {
+        timer -= 1;
+        shake = 5;
+        flash_bg = true;
+//        if (timer<=45 and count(particles)<50) {
+//            add(particles,{
+//                x=1+rnd(14),
+//                y=0,
+//                h=32+rnd(32),
+//                spd=8+rnd(8)
+//            })
+//        }
+        if(timer < 0) {
+            state = 2;
+            //particles={};
+            flash_bg = false;
+            new_bg = true;
+            new Orb(x + 4, y + 4);
+            pause_player = false;
+        }
+//        foreach(particles,function(p)
+//            p.y+=p.spd
+//            line(x+p.x,y+8-p.y,x+p.x,min(y+8-p.y+p.h,y+8),7)
+//        })
+    }
+    spr(112, x, y + 8);
+    spr(113, x + 8, y + 8);
+}
+
+Orb::Orb(int x, int y) : Object(x, y) {
+    spd.y = -4;
+    solids = false;
+    //particles={}
+}
+
+void Orb::draw() {
+    spd.y = appr(spd.y, 0, SP(0.5));
+    auto hit = (Player *) collide(player, 0, 0);
+    if(spd.y == 0 and hit != nullptr) {
+        music_timer = 45;
+        //sfx(51);
+        freeze = 10;
+        shake = 10;
+        max_djump = 2;
+        hit->djump = 2;
+        delete this;
+    } else {
+        spr(102, x, y);
+        // todo
+//      float off=frames/30;
+//      for (int i=0; i <= 7; i++) {
+//          circfill(x+4+cos(off+i/8)*8,y+4+sin(off+i/8)*8,1,7)
+//      }
+    }
+}
+
+Flag::Flag(int x, int y) : Object(x, y) {
+    x += 5;
+    score = 0;
+    show = false;
+    for(bool i: got_fruit) {
+        if(i) {
+            score += 1;
+        }
+    }
+    type = flag;
+}
+
+void Flag::draw() {
+    sprite = 118 + (frames / 5) % 3;
+    spr(sprite, x, y);
+    if(show) {
+        rectfill(32, 2, 96, 31, 0);
+        spr(26, 55, 6);
+        print("x", 64, 9, 7);
+        print_int(score);
+        draw_time(49, 16);
+        print("deaths:", 48, 24, 7);
+        print_int(deaths);
+    } else if(check(player, 0, 0)) {
+        //sfx(55);
+        sfx_timer = 30;
+        show = true;
+    }
+}
 
 RoomTitle::RoomTitle(int x, int y) : Object(x, y) {
     delay = 5;
@@ -986,15 +978,34 @@ Object *init_object(type type, int x, int y) {
     switch(type) {
         case player_spawn:
             return new PlayerSpawn(x, y);
-        case platform:
-            // todo
-            //return new Platform(x, y);
+        case spring:
+            return new Spring(x, y);
+        case balloon:
+            return new Balloon(x, y);
+        case fall_floor:
+            return new FallFloor(x, y);
         case smoke:
             return new Smoke(x, y);
         case fruit:
             return has_fruit ? nullptr : new Fruit(x, y);
+        case fly_fruit:
+            return has_fruit ? nullptr : new FlyFruit(x, y);
         case fake_wall:
             return has_fruit ? nullptr : new FakeWall(x, y);
+        case key:
+            return has_fruit ? nullptr : new Key(x, y);
+        case chest:
+            return has_fruit ? nullptr : new Chest(x, y);
+        case platform:
+            return new Platform(x, y, -1);
+        case platform_right:
+            return new Platform(x, y, 1);
+        case message:
+            return new Message(x, y);
+        case big_chest:
+            return new BigChest(x, y);
+        case flag:
+            return new Flag(x, y);
         default:
             return nullptr;
     }
@@ -1158,6 +1169,7 @@ void next_room() {
 }
 
 void load_room(uint8_t x, uint8_t y) {
+    dbg_printf("loading room %u, %u\n", x, y);
     has_dashed = false;
     has_key = false;
 
@@ -1174,13 +1186,7 @@ void load_room(uint8_t x, uint8_t y) {
     for(uint8_t tx = 0; tx <= 15; tx++) {
         for(uint8_t ty = 0; ty <= 15; ty++) {
             uint8_t tile = mget(room.x * 16 + tx, room.y * 16 + ty);
-            if(tile == 11) {
-                init_object(platform, tx * 8, ty * 8)->dir = -1;
-            } else if(tile == 12) {
-                init_object(platform, tx * 8, ty * 8)->dir = 1;
-            } else {
-                init_object((type) (tile), tx * 8, ty * 8);
-            }
+            init_object((type) (tile), tx * 8, ty * 8);
         }
     }
 
@@ -1234,6 +1240,10 @@ void _update() {
             will_restart = false;
             load_room(room.x, room.y);
         }
+    }
+
+    if(kb_IsDown(kb_KeyYequ)) {
+        next_room();
     }
 
     // update each object

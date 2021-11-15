@@ -72,6 +72,12 @@ void print(const char *str, int x, int y, uint8_t col) {
     gfx_PrintStringXY(str, SCREEN_X(x), SCREEN_Y(y));
 }
 
+void print(char chr, int x, int y, uint8_t col) {
+    color(col);
+    gfx_SetTextXY(x, y);
+    gfx_PrintChar(chr);
+}
+
 void print_int(int n, int x, int y, uint8_t col) {
     gfx_SetTextXY(SCREEN_X(x), SCREEN_Y(y));
     color(col);
