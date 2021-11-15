@@ -921,7 +921,7 @@ void Orb::draw() {
 }
 
 Flag::Flag(int x, int y) : Object(x, y) {
-    x += 5;
+    this->x += 5;
     score = 0;
     show = false;
     for(bool i: got_fruit) {

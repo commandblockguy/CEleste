@@ -42,7 +42,7 @@ enum type {
     PLATFORM_RIGHT = 12,
     MESSAGE = 86,
     BIG_CHEST = 96,
-    FLAG = 128,
+    FLAG = 118,
     PLAYER
 };
 
