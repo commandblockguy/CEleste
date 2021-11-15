@@ -6,13 +6,10 @@
 
 void init();
 void update();
-void render();
 
 extern const uint8_t tilemap[64 * 128];
 
 #define mget(x, y) tilemap[(x) + (y) * 128]
-
-#define NUM_SPRITES (sizeof atlas_tiles_data / sizeof atlas_tiles_data[0])
 
 void print(const char *str);
 void print(const char *str, int x, int y, uint8_t col);
