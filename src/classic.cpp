@@ -371,8 +371,8 @@ void set_hair_color(int djump) {
 void draw_hair(Object *obj, int facing) {
     struct vec2i last = {.x=obj->x + 4 - facing * 2, .y=obj->y + (btn(k_down) ? 4 : 3)};
     for(int i = 0; i < 5; i++) {
-        obj->hair[i].x += (last.x - obj->hair[i].x) / 1.5;
-        obj->hair[i].y += (last.y + 0.5 - obj->hair[i].y) / 1.5;
+        obj->hair[i].x += (last.x - obj->hair[i].x) * 2 / 3;
+        obj->hair[i].y += ((last.y - obj->hair[i].y) * 2 + 1) / 3;
         circfill(obj->hair[i].x, obj->hair[i].y, obj->hair[i].size, 8);
         last.x = obj->hair[i].x;
         last.y = obj->hair[i].y;
@@ -497,6 +497,7 @@ Balloon::Balloon(int x, int y) : Object(x, y) {
     hitbox = {.x=-1, .y=-1, .w=10, .h=10};
     type = BALLOON;
     sprite = BALLOON;
+    offset = 0;
 }
 
 void Balloon::update() {
@@ -631,7 +632,7 @@ void Fruit::update() {
 FlyFruit::FlyFruit(int x, int y) : Object(x, y) {
     start = y;
     fly = false;
-    step = 0.5;
+    //step = 0.5;
     solids = false;
     sfx_delay = 8;
     type = FLY_FRUIT;
@@ -657,7 +658,7 @@ void FlyFruit::update() {
         if(has_dashed) {
             fly = true;
         }
-        step += 0.05;
+        //step += 0.05;
         // todo
         //spd.y=sin(step)*0.5;
     }
@@ -1464,8 +1465,8 @@ bool ice_at(int x, int y, int w, int h) {
 }
 
 bool tile_flag_at(int x, int y, int w, int h, uint8_t flag) {
-    for(int i = max(0, x / 8); i <= min(15, (x + w - 1) / 8.0); i++) {
-        for(int j = max(0, y / 8); j <= min(15, (y + h - 1) / 8.0); j++) {
+    for(int i = max(0, x / 8); i <= min(15, (x + w - 1) / 8); i++) {
+        for(int j = max(0, y / 8); j <= min(15, (y + h - 1) / 8); j++) {
             if(fget(tile_at(i, j), flag)) {
                 return true;
             }
