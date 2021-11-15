@@ -320,11 +320,11 @@ void Player::update() {
         sprite = 1 + (spr_off / 4) % 4;
     }
 
-    // next level
-    if(y < -4 and level_index() < 30) { next_room(); }
-
     // was on the ground
     was_on_ground = on_ground;
+
+    // next level
+    if(y < -4 and level_index() < 30) { next_room(); }
 }
 
 void Player::draw() {
@@ -415,8 +415,8 @@ void PlayerSpawn::update() {
         delay -= 1;
         sprite = 6;
         if(delay < 0) {
-            destroy_object(this);
             new Player(x, y);
+            delete this;
         }
     }
 }
@@ -581,8 +581,8 @@ Smoke::Smoke(int x, int y) : Object(x, y) {
     sprite = 29;
     spd.y = SP(-0.1);
     spd.x = SP(0.3) + rnd(SP(0.2));
-    x += -1 + rnd(2);
-    y += -1 + rnd(2);
+    this->x += -1 + rnd(2);
+    this->y += -1 + rnd(2);
     flip.x = maybe();
     flip.y = maybe();
     solids = false;
@@ -595,7 +595,7 @@ void Smoke::update() {
         sprite++;
     }
     if(sprite >= 32) {
-        destroy_object(this);
+        delete this;
     }
 }
 
@@ -695,7 +695,7 @@ LifeUp::LifeUp(int x, int y) : Object(x, y) {
 void LifeUp::update() {
     duration -= 1;
     if(duration <= 0) {
-        destroy_object(this);
+        delete this;
     }
 }
 
@@ -710,23 +710,24 @@ FakeWall::FakeWall(int x, int y) : Object(x, y) {
 };
 
 void FakeWall::update() {
-    hitbox={.x=-1,.y=-1,.w=18,.h=18};
-    auto *hit = (Player*)collide(player,0,0);
-    if (hit!=nullptr and hit->dash_effect_time>0 ) {
-        hit->spd.x=-sign(hit->spd.x) * 3 / 2;
-        hit->spd.y=SP(-1.5);
-        hit->dash_time=-1;
-        sfx_timer=20;
+    hitbox = {.x=-1, .y=-1, .w=18, .h=18};
+    auto *hit = (Player *) collide(player, 0, 0);
+    if(hit != nullptr and hit->dash_effect_time > 0) {
+        hit->spd.x = -sign(hit->spd.x) * 3 / 2;
+        hit->spd.y = SP(-1.5);
+        hit->dash_time = -1;
+        sfx_timer = 20;
         //sfx(16);
-        destroy_object(this);
-        new Smoke(x,y);
-        new Smoke(x+8,y);
-        new Smoke(x,y+8);
-        new Smoke(x+8,y+8);
-        new Fruit(x+4,y+4);
+        new Smoke(x, y);
+        new Smoke(x + 8, y);
+        new Smoke(x, y + 8);
+        new Smoke(x + 8, y + 8);
+        new Fruit(x + 4, y + 4);
+        delete this;
     }
-    hitbox={.x=0,.y=0,.w=16,.h=16};
+    hitbox = {.x=0, .y=0, .w=16, .h=16};
 }
+
 void FakeWall::draw() {
     spr(64,x,y);
     spr(65,x+8,y);
@@ -956,7 +957,7 @@ RoomTitle::RoomTitle(int x, int y) : Object(x, y) {
 void RoomTitle::draw() {
     delay -= 1;
     if(delay < -30) {
-        destroy_object(this);
+        delete this;
     } else if(delay < 0) {
 
         rectfill(24, 58, 104, 70, 0);
@@ -1097,9 +1098,9 @@ void Object::move_y(int amount) {
     }
 }
 
-void destroy_object(Object *obj) {
+Object::~Object() {
     for(auto i = objects.begin(); i != objects.end(); i++) {
-        if(*i == obj) {
+        if(*i == this) {
             objects.erase(i);
             return;
         }
@@ -1111,7 +1112,7 @@ void Player::kill() {
     //sfx(0);
     deaths += 1;
     shake = 10;
-    destroy_object(this);
+    delete this;
 //    dead_particles={};
 //    for(int dir=0; dir <= 7; dir++) {
 //        float angle=(dir/8.0);
@@ -1161,9 +1162,8 @@ void load_room(uint8_t x, uint8_t y) {
     has_key = false;
 
     //remove existing objects
-    for(Object *object: objects) {
-        // todo: this probably doesn't work
-        destroy_object(object);
+    while(!objects.empty()) {
+        delete objects[0];
     }
 
     //current room
@@ -1237,9 +1237,11 @@ void _update() {
     }
 
     // update each object
-    for(auto obj: objects) {
+    for(size_t i = 0; i < objects.size();) {
+        Object *obj = objects[i];
         obj->move(obj->spd.x, obj->spd.y);
         obj->update();
+        if(i < objects.size() && objects[i] == obj) i++;
     }
 
     // start game

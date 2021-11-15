@@ -43,6 +43,7 @@ enum type {
 class Object {
 public:
     Object(int x, int y);
+    virtual ~Object();
 
     bool collideable;
     bool solids;
