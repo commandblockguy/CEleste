@@ -53,8 +53,6 @@ void update() {
         gfx_SetTextXY(0, 0);
         gfx_PrintInt(timer_Get(1) / 33, 1);
         gfx_SwapDraw();
-
-        // todo: palette swap
     }
 }
 
@@ -112,15 +110,15 @@ void camera(int x, int y) {
 }
 
 bool fget(uint8_t tile, uint8_t flag) {
-    return tile < sizeof mask && (mask[tile] & (1 << flag)) != 0;
+    return (mask[tile] & (1 << flag)) != 0;
 }
 
-void map(int cell_x, int cell_y, int sx, int sy, int cell_w, int cell_h, uint8_t layers) {
+void map(int cell_x, int cell_y, int sx, int sy, uint8_t cell_w, uint8_t cell_h, uint8_t layers) {
     for(int y = 0; y < cell_h; y++) {
         for(int x = 0; x < cell_w; x++) {
             uint8_t tile = tilemap[x + cell_x + (y + cell_y) * 128];
             // I don't think this is how the PICO-8 actually handles the layers argument but whatevs
-            if(tile < NUM_SPRITES && (layers == 0 || fget(tile, layers))) {
+            if(tile && fget(tile, layers)) {
                 gfx_TransparentSprite(atlas_tiles[tile], offset.x + sx + x * 8, offset.y + sy + y * 8);
             }
         }

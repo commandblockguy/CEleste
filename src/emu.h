@@ -28,7 +28,7 @@ void camera();
 void camera(int x, int y);
 
 bool fget(uint8_t tile, uint8_t flag);
-void map(int cell_x, int cell_y, int sx, int sy, int cell_w, int cell_h, uint8_t layers);
+void map(int cell_x, int cell_y, int sx, int sy, uint8_t cell_w, uint8_t cell_h, uint8_t layers);
 void spr(uint8_t n, int x, int y);
 void spr(uint8_t n, int x, int y, uint8_t w, uint8_t h, bool flip_x, bool flip_y);
 void pal();
