@@ -127,7 +127,8 @@ public:
 class Balloon : public Object {
 public:
     Balloon(int x, int y);
-    int offset;
+    unsigned offset;
+    uint8_t sprite_tmr;
     int timer;
     int start;
     void update() override;
@@ -165,7 +166,8 @@ public:
     FlyFruit(int x, int y);
     bool fly;
     int start;
-    float step;
+    int step;
+    int off;
     int sfx_delay;
     void update() override;
     void draw() override;

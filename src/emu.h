@@ -36,3 +36,15 @@ bool btn(uint8_t index);
 int rnd(int max);
 int min(int a, int b);
 int max(int a, int b);
+
+void gen_lookups();
+
+#define DEGREES_TO_ANGLE(deg) ((unsigned)((float)(deg) * (1 << (24 - 3)) / 45))
+
+int fast_sin(unsigned angle);
+#define sin(rot) (-fast_sin(rot))
+#define cos(rot) fast_sin(DEGREES_TO_ANGLE(90) - (rot))
+
+#define TRIG_SCALE 256
+#define TRIG_PRECISION_BITS 8
+#define TRIG_PRECISION (1 << TRIG_PRECISION_BITS)

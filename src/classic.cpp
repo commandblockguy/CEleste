@@ -491,7 +491,8 @@ void Spring::break_spring() {
 }
 
 Balloon::Balloon(int x, int y) : Object(x, y) {
-    //offset=rnd(1);
+    offset = rand() * (UINT24_MAX / RAND_MAX);
+    sprite_tmr = rnd(3);
     start = y;
     timer = 0;
     hitbox = {.x=-1, .y=-1, .w=10, .h=10};
@@ -502,9 +503,8 @@ Balloon::Balloon(int x, int y) : Object(x, y) {
 
 void Balloon::update() {
     if(sprite == 22) {
-        // todo
-        //offset+=0.01;
-        //y=start+sin(offset)*2;
+        offset += UINT24_MAX / 100;
+        y = start + sin(offset) * 2 / TRIG_SCALE;
         Player *hit = collide_player(0, 0);
         if(hit != nullptr and hit->djump < max_djump) {
             //psfx(6);
@@ -520,11 +520,12 @@ void Balloon::update() {
         new Smoke(x, y);
         sprite = 22;
     }
+    if(++sprite_tmr == 24) sprite_tmr = 0;
 }
 
 void Balloon::draw() {
     if(sprite == 22) {
-        spr(13 + (offset * 8) % 3, x, y + 6);
+        spr(13 + sprite_tmr / 8, x, y + 6);
         spr(sprite, x, y);
     }
 }
@@ -623,20 +624,20 @@ void Fruit::update() {
         new LifeUp(x, y);
         delete this;
     } else {
-        off += 1;
-        y = start;
-        // todo: y = start + sin(off / 40) * 5 / 2;
+        off += UINT24_MAX / 40;
+        y = start + sin(off) * 5 / 2 / TRIG_SCALE;
     }
 }
 
 FlyFruit::FlyFruit(int x, int y) : Object(x, y) {
     start = y;
     fly = false;
-    //step = 0.5;
+    step = UINT24_MAX / 4;
     solids = false;
     sfx_delay = 8;
     type = FLY_FRUIT;
     sprite = FLY_FRUIT;
+    off = 0;
 }
 
 void FlyFruit::update() {
@@ -658,9 +659,8 @@ void FlyFruit::update() {
         if(has_dashed) {
             fly = true;
         }
-        //step += 0.05;
-        // todo
-        //spd.y=sin(step)*0.5;
+        step += UINT24_MAX / 20;
+        spd.y = sin(step) / 2;
     }
     // collect
     Player *hit = collide_player(0, 0);
@@ -675,19 +675,17 @@ void FlyFruit::update() {
 }
 
 void FlyFruit::draw() {
-    int off = 0;
     if(not fly) {
-        // todo
-//        int dir = sin(step);
-//        if(dir < 0) {
-//            off = 1 + max(0, sign(y - start));
-//        }
+        int dir = sin(step);
+        if(dir < 0) {
+            off = (1 + max(0, sign(y - start))) * 4;
+        }
     } else {
-//        off=(off+0.25)%3;
+        off=(off+1)%12;
     }
-    spr(45 + off, x - 6, y - 2, 1, 1, true, false);
+    spr(45 + off / 4, x - 6, y - 2, 1, 1, true, false);
     spr(sprite, x, y);
-    spr(45 + off, x + 6, y - 2);
+    spr(45 + off / 4, x + 6, y - 2);
 }
 
 LifeUp::LifeUp(int x, int y) : Object(x, y) {
@@ -749,8 +747,8 @@ Key::Key(int x, int y) : Object(x, y) {
 
 void Key::update() {
     int was = sprite;
-    // todo
-    //sprite=9+(sin(frames/30)+0.5)*1;
+    // todo: figure out why this only shows two sprites
+    sprite = 9 + (sin(frames * (UINT24_MAX / 30)) + TRIG_SCALE / 2) / TRIG_SCALE;
     int is = sprite;
     if(is == 10 and is != was) {
         flip.x = not flip.x;
