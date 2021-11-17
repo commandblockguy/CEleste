@@ -13,6 +13,7 @@
 #include <cmath>
 
 #include "gfx/gfx.h"
+#include "profiler.h"
 
 #define BASE_X ((LCD_WIDTH - 128) / 2)
 #define BASE_Y ((LCD_HEIGHT - 128) / 2)
@@ -49,12 +50,15 @@ void init() {
     gen_lookups();
     fontlib_SetFont(reinterpret_cast<const fontlib_font_t *>(font_data), static_cast<fontlib_load_options_t>(0));
     fontlib_SetTransparency(true);
+    profiler_init();
     _init();
 }
 
 void update() {
     timer_Set(1, 0);
+    profiler_add(total);
     kb_Scan();
+    if(kb_IsDown(kb_KeyGraph)) profiler_print();
 
     gameFrame++;
     _update();
@@ -69,6 +73,8 @@ void update() {
         gfx_PrintInt(timer_Get(1) / 33, 1);
         gfx_SwapDraw();
     }
+    profiler_end(total);
+    profiler_tick();
 }
 
 void color(uint8_t c) {
@@ -152,6 +158,7 @@ bool fget(uint8_t tile, uint8_t flag) {
 }
 
 void map(int cell_x, int cell_y, int sx, int sy, uint8_t cell_w, uint8_t cell_h, uint8_t layers) {
+    profiler_add(map);
     for(int y = 0; y < cell_h; y++) {
         for(int x = 0; x < cell_w; x++) {
             uint8_t tile = tilemap[x + cell_x + (y + cell_y) * 128];
@@ -161,6 +168,7 @@ void map(int cell_x, int cell_y, int sx, int sy, uint8_t cell_w, uint8_t cell_h,
             }
         }
     }
+    profiler_end(map);
 }
 
 void spr(uint8_t n, int x, int y) {
@@ -168,7 +176,7 @@ void spr(uint8_t n, int x, int y) {
 }
 
 void spr(uint8_t n, int x, int y, uint8_t w, uint8_t h, bool flip_x, bool flip_y) {
-    if(w != 1 || h != 1) dbg_printf("tried to use multi-width sprite");
+    profiler_add(spr);
     gfx_sprite_t *sprite = atlas_tiles[n];
     gfx_TempSprite(temp, 8, 8);
     if(flip_x) {
@@ -186,6 +194,7 @@ void spr(uint8_t n, int x, int y, uint8_t w, uint8_t h, bool flip_x, bool flip_y
     }
     // todo: both?
     gfx_TransparentSprite(temp, x + offset.x, y + offset.y);
+    profiler_end(spr);
 }
 
 void pal() {

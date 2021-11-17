@@ -6,6 +6,7 @@
 #include <cstring>
 #include <keypadc.h>
 #include "emu.h"
+#include "profiler.h"
 
 // ~celeste~
 // matt thorson + noel berry
@@ -134,6 +135,7 @@ Player::~Player() {
 
 void Player::update() {
     if(pause_player) return;
+    profiler_add(player_update);
 
     int input = btn(k_right) ? 1 : (btn(k_left) ? -1 : 0);
 
@@ -329,9 +331,11 @@ void Player::update() {
 
     // next level
     if(y < -4 and level_index() < 30) { next_room(); }
+    profiler_end(player_update);
 }
 
 void Player::draw() {
+    profiler_add(player_draw);
     // clamp in screen
     if(x < -1 or x > 121) {
         x = clamp(x, -1, 121);
@@ -342,6 +346,7 @@ void Player::draw() {
     draw_hair(this, flip.x ? -1 : 1);
     spr(sprite, x, y, 1, 1, flip.x, flip.y);
     unset_hair_color();
+    profiler_end(player_draw);
 }
 
 //void psfx(int num) {
@@ -1214,6 +1219,7 @@ void load_room(uint8_t x, uint8_t y) {
 ///////////////////////
 
 void _update() {
+    profiler_add(update);
     frames = ((frames + 1) % 30);
     if(frames == 0 and level_index() < 30) {
         seconds = ((seconds + 1) % 60);
@@ -1236,6 +1242,7 @@ void _update() {
     // cancel if freeze
     if(freeze > 0) {
         freeze -= 1;
+        profiler_end(update);
         return;
     }
 
@@ -1261,6 +1268,7 @@ void _update() {
         next_room();
     }
 
+    profiler_add(obj_update);
     // update each object
     for(size_t i = 0; i < objects.size();) {
         Object *obj = objects[i];
@@ -1268,6 +1276,7 @@ void _update() {
         obj->update();
         if(i < objects.size() && objects[i] == obj) i++;
     }
+    profiler_end(obj_update);
 
     // start game
     if(is_title()) {
@@ -1284,12 +1293,14 @@ void _update() {
             }
         }
     }
+    profiler_end(update);
 }
 
 // drawing functions //
 ///////////////////////
 void _draw() {
     if(freeze > 0) return;
+    profiler_add(draw);
 
     // reset all palette values
     pal();
@@ -1327,6 +1338,7 @@ void _draw() {
     }
     rectfill(0, 0, 128, 128, bg_col);
 
+    profiler_add(clouds);
     // clouds
     if(not is_title()) {
         for(Cloud &c: clouds) {
@@ -1338,31 +1350,43 @@ void _draw() {
             }
         }
     }
+    profiler_end(clouds);
 
+    profiler_add(tilemap_1);
     // draw bg terrain
     map(room.x * 16, room.y * 16, 0, 0, 16, 16, 2);
+    profiler_end(tilemap_1);
 
+    profiler_add(obj_draw);
     // platforms/big chest
     for(auto o: objects) {
         if(o->type == PLATFORM or o->type == BIG_CHEST) {
             o->draw();
         }
     }
+    profiler_end(obj_draw);
 
+    profiler_add(tilemap_2);
     // draw terrain
     int off = is_title() ? -4 : 0;
     map(room.x * 16, room.y * 16, off, 0, 16, 16, 1);
+    profiler_end(tilemap_2);
 
+    profiler_add(obj_draw);
     // draw objects
     for(auto o: objects) {
         if(o->type != PLATFORM and o->type != BIG_CHEST) {
             o->draw();
         }
     };
+    profiler_end(obj_draw);
 
+    profiler_add(tilemap_3);
     // draw fg terrain
     map(room.x * 16, room.y * 16, 0, 0, 16, 16, 3);
+    profiler_end(tilemap_3);
 
+    profiler_add(particles);
 #if 0
     // todo: optimize
     // particles
@@ -1389,6 +1413,7 @@ void _draw() {
         }
         dead_particle_timer--;
     }
+    profiler_end(particles);
 
     // credits
     if(is_title()) {
@@ -1413,6 +1438,7 @@ void _draw() {
             rectfill(128 - diff, 0, 128, 128, 0);
         }
     }
+    profiler_end(draw);
 }
 
 void Object::draw() {
