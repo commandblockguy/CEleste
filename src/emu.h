@@ -21,6 +21,7 @@ void print_int(int n, int l);
 
 void rectfill(int x0, int y0, int x1, int y1, uint8_t col);
 void circfill(int x, int y, int radius, int col);
+void draw_plus(int x, int y, int col);
 void vert_line(int x, int y0, int y1, int col);
 
 void camera();

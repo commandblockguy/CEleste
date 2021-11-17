@@ -892,7 +892,7 @@ void BigChest::draw() {
 }
 
 Orb::Orb(int x, int y) : Object(x, y) {
-    spd.y = -4;
+    spd.y = SP(-4);
     solids = false;
     chest_particle_count = 0;
 }
@@ -910,11 +910,11 @@ void Orb::draw() {
         delete this;
     } else {
         spr(102, x, y);
-        // todo
-//      float off=frames/30;
-//      for (int i=0; i <= 7; i++) {
-//          circfill(x+4+cos(off+i/8)*8,y+4+sin(off+i/8)*8,1,7)
-//      }
+        int off = frames * (1 << 19);
+        for(int i = 0; i <= 7; i++) {
+            draw_plus(x + 4 + cos(off + i * (1 << 21)) * 8 / TRIG_SCALE,
+                     y + 4 + sin(off + i * (1 << 21)) * 8 / TRIG_SCALE, 7);
+        }
     }
 }
 

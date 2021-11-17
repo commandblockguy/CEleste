@@ -118,6 +118,15 @@ void circfill(int x, int y, int radius, int col) {
     gfx_FillCircle(SCREEN_X(x), SCREEN_Y(y), radius);
 }
 
+void draw_plus(int x, int y, int col) {
+    color(col);
+    gfx_SetPixel(SCREEN_X(x), SCREEN_Y(y));
+    gfx_SetPixel(SCREEN_X(x + 1), SCREEN_Y(y));
+    gfx_SetPixel(SCREEN_X(x - 1), SCREEN_Y(y));
+    gfx_SetPixel(SCREEN_X(x), SCREEN_Y(y + 1));
+    gfx_SetPixel(SCREEN_X(x), SCREEN_Y(y - 1));
+}
+
 void vert_line(int x, int y0, int y1, int col) {
     color(col);
     if(y0 < y1) {
