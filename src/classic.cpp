@@ -1426,7 +1426,7 @@ void draw_time(int x, int y) {
     int h = minutes / 60;
 
     rectfill(x, y, x + 32, y + 6, 0);
-    print_int(h, x + 1, y + 1, 7);
+    print_int(h, x + 1, y + 1, 7, 2);
     print(":");
     print_int(m, 2);
     print(":");

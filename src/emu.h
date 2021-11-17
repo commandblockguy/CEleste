@@ -14,6 +14,7 @@ extern const uint8_t tilemap[64 * 128];
 void print(const char *str);
 void print(const char *str, int x, int y, uint8_t col);
 void print(char chr, int x, int y, uint8_t col);
+void print_int(int n, int x, int y, uint8_t col, int l);
 void print_int(int n, int x, int y, uint8_t col);
 void print_int(int n);
 void print_int(int n, int l);
