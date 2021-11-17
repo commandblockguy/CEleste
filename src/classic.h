@@ -27,6 +27,15 @@ struct Cloud {
     int w;
 };
 
+struct Particle {
+    subpixel x;
+    subpixel y;
+    int s;
+    subpixel spd;
+    int off;
+    int c;
+};
+
 enum type {
     PLAYER_SPAWN = 1,
     SPRING = 18,

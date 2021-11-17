@@ -17,6 +17,7 @@ struct vec2i room = {0, 0};
 
 tinystl::vector<Object *> objects = {};
 Cloud clouds[NUM_CLOUDS];
+Particle particles[25];
 
 Player *player = nullptr;
 
@@ -54,6 +55,15 @@ void _init() {
         cloud.y = rnd(128);
         cloud.spd = 1 + rnd(4);
         cloud.w = 32 + rnd(32);
+    }
+
+    for(Particle &p : particles) {
+        p.x = rnd(SP(128));
+        p.y = rnd(SP(128));
+        p.s = 0 + rnd(SP(5)) / 4;
+        p.spd = SP(0.25) + rnd(SP(5));
+        p.off = rand() * 2;
+        p.c = 6 + rnd(1);
     }
 
     title_screen();
@@ -94,20 +104,6 @@ bool is_title() {
 
 
 // effects //
-/////////////
-
-// todo
-// particles = {}
-// for i=0,24 do
-//     add(particles,{
-//         x=rnd(128),
-//         y=rnd(128),
-//         s=0+flr(rnd(5)/4),
-//         spd=0.25+rnd(5),
-//         off=rnd(1),
-//         c=6+flr(0.5+rnd(1))
-//     })
-// }
 
 // dead_particles = {}
 
@@ -491,7 +487,7 @@ void Spring::break_spring() {
 }
 
 Balloon::Balloon(int x, int y) : Object(x, y) {
-    offset = rand() * (UINT24_MAX / RAND_MAX);
+    offset = rand() * 2;
     sprite_tmr = rnd(3);
     start = y;
     timer = 0;
@@ -1371,18 +1367,20 @@ void _draw() {
     // draw fg terrain
     map(room.x * 16, room.y * 16, 0, 0, 16, 16, 3);
 
+#if 0
+    // todo: optimize
     // particles
-    // todo
-/*    foreach(particles, function(p)
-        p.x += p.spd
-        p.y += sin(p.off)
-        p.off+= min(0.05,p.spd/32)
-        rectfill(p.x,p.y,p.x+p.s,p.y+p.s,p.c)
-        if (p.x>128+4 ) {
-            p.x=-4
-            p.y=rnd(128)
+    for(Particle &p : particles) {
+        p.x += p.spd;
+        p.y += sin(p.off);
+        p.off += min(UINT24_MAX / 20, p.spd * (1 << 11));
+        rectfill(PIX(p.x), PIX(p.y), PIX(p.x + p.s), PIX(p.y + p.s), p.c);
+        if(p.x > SP(128 + 4)) {
+            p.x = SP(-4);
+            p.y = rnd(SP(128));
         }
-    })*/
+    }
+#endif
 
     // dead particles
 /*    foreach(dead_particles, function(p)
