@@ -22,12 +22,15 @@
 #define SCREEN_X2(x0) (SCREEN_X1(x0) + LCD_WIDTH / 2)
 #define SCREEN_Y(y0) ((y0) + offset.y)
 
+#define FRAMESKIP 0
+
 static struct {
     int x;
     int y;
 } offset = {BASE_X / 2, BASE_Y / 2};
 
 static int gameFrame = 0;
+static int timerOffset = 0;
 
 const uint8_t mask[] = {
         0, 0, 0,  0,  0,  0,  0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -63,13 +66,19 @@ void init() {
 void update() {
     timer_Set(1, 0);
     profiler_add(total);
-    kb_Scan();
-    if(kb_IsDown(kb_KeyGraph)) profiler_print();
+    do {
+        kb_Scan();
+        if(kb_IsDown(kb_KeyGraph)) profiler_print();
+        if(kb_IsDown(kb_KeyClear)) return;
+    } while(FRAMESKIP && timerOffset + timer_Get(1) < 0);
 
     gameFrame++;
+#if FRAMESKIP
+    timerOffset -= 32768 / 30;
+#endif
     _update();
 
-    if(freeze <= 0) {
+    if(freeze <= 0 && (!FRAMESKIP || timerOffset < 32768 / 30)) {
         // draw
         _draw();
         gfx_SetColor(0);
@@ -88,6 +97,7 @@ void update() {
     }
     profiler_end(total);
     profiler_tick();
+    timerOffset += timer_Get(1);
 }
 
 void color(uint8_t c) {
