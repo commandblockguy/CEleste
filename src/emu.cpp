@@ -118,6 +118,15 @@ void circfill(int x, int y, int radius, int col) {
     gfx_FillCircle(SCREEN_X(x), SCREEN_Y(y), radius);
 }
 
+void vert_line(int x, int y0, int y1, int col) {
+    color(col);
+    if(y0 < y1) {
+        gfx_VertLine(SCREEN_X(x), SCREEN_Y(y0), SCREEN_Y(y1 - y0));
+    } else {
+        gfx_VertLine(SCREEN_X(x), SCREEN_Y(y1), SCREEN_Y(y0 - y1));
+    }
+}
+
 void camera() {
     camera(0, 0);
 }

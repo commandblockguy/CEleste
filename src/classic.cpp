@@ -842,7 +842,10 @@ BigChest::BigChest(int x, int y) : Object(x, y) {
     type = BIG_CHEST;
 }
 
+uint8_t chest_particle_count = 0;
+
 void BigChest::draw() {
+    static ChestParticle particles[50];
     if(state == 0) {
         Player *hit = collide_player(0, 8);
         if(hit != nullptr and hit->is_solid(0, 1)) {
@@ -855,7 +858,7 @@ void BigChest::draw() {
             new Smoke(x, y);
             new Smoke(x + 8, y);
             timer = 60;
-            //particles={};
+            chest_particle_count = 0;
         }
         spr(96, x, y);
         spr(97, x + 8, y);
@@ -863,26 +866,26 @@ void BigChest::draw() {
         timer -= 1;
         shake = 5;
         flash_bg = true;
-//        if (timer<=45 and count(particles)<50) {
-//            add(particles,{
-//                x=1+rnd(14),
-//                y=0,
-//                h=32+rnd(32),
-//                spd=8+rnd(8)
-//            })
-//        }
+        if(timer <= 45 and chest_particle_count < 50) {
+            ChestParticle &p = particles[chest_particle_count++];
+            p.x = SP(1) + rnd(SP(14));
+            p.y = 0;
+            p.h = 32 + rnd(32);
+            p.spd = SP(8) + rnd(SP(8));
+        }
         if(timer < 0) {
             state = 2;
-            //particles={};
+            chest_particle_count = 0;
             flash_bg = false;
             new_bg = true;
             new Orb(x + 4, y + 4);
             pause_player = false;
         }
-//        foreach(particles,function(p)
-//            p.y+=p.spd
-//            line(x+p.x,y+8-p.y,x+p.x,min(y+8-p.y+p.h,y+8),7)
-//        })
+        for(int i = 0; i < chest_particle_count; i++) {
+            ChestParticle &p = particles[i];
+            p.y += p.spd;
+            vert_line(x + PIX(p.x), y + 8 - PIX(p.y), min(y + 8 - PIX(p.y) + p.h, y + 8), 7);
+        }
     }
     spr(112, x, y + 8);
     spr(113, x + 8, y + 8);
@@ -891,7 +894,7 @@ void BigChest::draw() {
 Orb::Orb(int x, int y) : Object(x, y) {
     spd.y = -4;
     solids = false;
-    //particles={}
+    chest_particle_count = 0;
 }
 
 void Orb::draw() {
