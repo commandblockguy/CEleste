@@ -8,9 +8,9 @@ extern "C" {
 #include <stdint.h>
 #include <tice.h>
 
-#ifndef NDEBUG
+//#ifndef NDEBUG
 #define USE_PROFILER 1
-#endif
+//#endif
 
 #if USE_PROFILER
 
@@ -21,6 +21,7 @@ union profiler_set {
         unsigned int draw;
         unsigned int spr;
         unsigned int map;
+        unsigned int deinterlace;
         unsigned int tilemap_1;
         unsigned int tilemap_2;
         unsigned int tilemap_3;

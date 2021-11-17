@@ -18,8 +18,7 @@
 #define BASE_X ((LCD_WIDTH - 128 * 2) / 2)
 #define BASE_Y ((LCD_HEIGHT - 128 * 2) / 2)
 
-#define SCREEN_X1(x0) ((x0) + offset.x)
-#define SCREEN_X2(x0) (SCREEN_X1(x0) + LCD_WIDTH / 2)
+#define SCREEN_X(x0) ((x0) + offset.x)
 #define SCREEN_Y(y0) ((y0) + offset.y)
 
 #define FRAMESKIP 0
@@ -55,6 +54,8 @@ void init() {
     gfx_SetDrawBuffer();
     gfx_ZeroScreen();
     gfx_SetPalette(mypalette, sizeof mypalette, 0);
+    gfx_SetClipRegion(BASE_X / 2, 0,
+                      BASE_X / 2 + 128, LCD_HEIGHT);
     lcd_Control = 0x13925; // 4 bpp mode
     fontlib_SetFont(reinterpret_cast<const fontlib_font_t *>(font_data), static_cast<fontlib_load_options_t>(0));
     fontlib_SetTransparency(true);
@@ -83,16 +84,17 @@ void update() {
         _draw();
         gfx_SetColor(0);
         gfx_FillRectangle_NoClip(0, 0, BASE_X / 2, LCD_HEIGHT / 2);
-        gfx_FillRectangle_NoClip(LCD_WIDTH / 2, 0, BASE_X / 2, LCD_HEIGHT / 2);
         gfx_FillRectangle_NoClip(BASE_X / 2 + 128, 0, BASE_X / 2, LCD_HEIGHT / 2);
-        gfx_FillRectangle_NoClip(BASE_X / 2 + 128 + LCD_WIDTH / 2, 0, BASE_X / 2, LCD_HEIGHT / 2);
         gfx_FillRectangle_NoClip(0, 0, 16, 12);
         gfx_SetTextFGColor(0x77);
         uint24_t t = timer_Get(1) / 33;
         gfx_SetTextXY(0, 0);
         gfx_PrintUInt(t, 1);
-        gfx_SetTextXY(LCD_WIDTH / 2, 0);
-        gfx_PrintUInt(t, 1);
+        profiler_add(deinterlace);
+        for(uint8_t y = 0; y < LCD_HEIGHT / 2; y++) {
+            memcpy(&gfx_vbuffer[y][LCD_WIDTH / 2], &gfx_vbuffer[y][0], LCD_WIDTH / 2);
+        }
+        profiler_end(deinterlace);
         gfx_SwapDraw();
     }
     profiler_end(total);
@@ -106,30 +108,23 @@ void color(uint8_t c) {
 }
 
 void print(const char *str) {
-    uint24_t x = fontlib_GetCursorX();
-    uint8_t y = fontlib_GetCursorY();
-    fontlib_SetCursorPosition(x + LCD_WIDTH / 2, y);
-    fontlib_DrawString(str);
-    fontlib_SetCursorPosition(x, y);
     fontlib_DrawString(str);
 }
 
 void print(const char *str, int x, int y, uint8_t col) {
     color(col);
-    fontlib_SetCursorPosition(SCREEN_X1(x - 1), SCREEN_Y(y));
+    fontlib_SetCursorPosition(SCREEN_X(x - 1), SCREEN_Y(y));
     print(str);
 }
 
 void print(char chr, int x, int y, uint8_t col) {
     color(col);
-    fontlib_SetCursorPosition(SCREEN_X2(x - 1), SCREEN_Y(y));
-    fontlib_DrawGlyph(chr);
-    fontlib_SetCursorPosition(SCREEN_X1(x - 1), SCREEN_Y(y));
+    fontlib_SetCursorPosition(SCREEN_X(x - 1), SCREEN_Y(y));
     fontlib_DrawGlyph(chr);
 }
 
 void print_int(int n, int x, int y, uint8_t col, int l) {
-    fontlib_SetCursorPosition(SCREEN_X1(x - 1), SCREEN_Y(y));
+    fontlib_SetCursorPosition(SCREEN_X(x - 1), SCREEN_Y(y));
     color(col);
     print_int(n, l);
 }
@@ -143,48 +138,34 @@ void print_int(int n) {
 }
 
 void print_int(int n, int l) {
-    uint24_t x = fontlib_GetCursorX();
-    uint8_t y = fontlib_GetCursorY();
-    fontlib_SetCursorPosition(x + LCD_WIDTH / 2, y);
-    fontlib_DrawUInt(n, l);
-    fontlib_SetCursorPosition(x, y);
     fontlib_DrawUInt(n, l);
 }
 
 void rectfill(int x0, int y0, int x1, int y1, uint8_t col) {
     color(col);
-    gfx_FillRectangle(SCREEN_X1(x0), SCREEN_Y(y0), x1 - x0 + 1, y1 - y0 + 1);
-    gfx_FillRectangle(SCREEN_X2(x0), SCREEN_Y(y0), x1 - x0 + 1, y1 - y0 + 1);
+    gfx_FillRectangle(SCREEN_X(x0), SCREEN_Y(y0), x1 - x0 + 1, y1 - y0 + 1);
 }
 
 void circfill(int x, int y, int radius, int col) {
     color(col);
-    gfx_FillCircle(SCREEN_X1(x), SCREEN_Y(y), radius);
-    gfx_FillCircle(SCREEN_X2(x), SCREEN_Y(y), radius);
+    gfx_FillCircle(SCREEN_X(x), SCREEN_Y(y), radius);
 }
 
 void draw_plus(int x, int y, int col) {
     color(col);
-    gfx_SetPixel(SCREEN_X1(x), SCREEN_Y(y));
-    gfx_SetPixel(SCREEN_X1(x + 1), SCREEN_Y(y));
-    gfx_SetPixel(SCREEN_X1(x - 1), SCREEN_Y(y));
-    gfx_SetPixel(SCREEN_X1(x), SCREEN_Y(y + 1));
-    gfx_SetPixel(SCREEN_X1(x), SCREEN_Y(y - 1));
-    gfx_SetPixel(SCREEN_X2(x), SCREEN_Y(y));
-    gfx_SetPixel(SCREEN_X2(x + 1), SCREEN_Y(y));
-    gfx_SetPixel(SCREEN_X2(x - 1), SCREEN_Y(y));
-    gfx_SetPixel(SCREEN_X2(x), SCREEN_Y(y + 1));
-    gfx_SetPixel(SCREEN_X2(x), SCREEN_Y(y - 1));
+    gfx_SetPixel(SCREEN_X(x), SCREEN_Y(y));
+    gfx_SetPixel(SCREEN_X(x + 1), SCREEN_Y(y));
+    gfx_SetPixel(SCREEN_X(x - 1), SCREEN_Y(y));
+    gfx_SetPixel(SCREEN_X(x), SCREEN_Y(y + 1));
+    gfx_SetPixel(SCREEN_X(x), SCREEN_Y(y - 1));
 }
 
 void vert_line(int x, int y0, int y1, int col) {
     color(col);
     if(y0 < y1) {
-        gfx_VertLine(SCREEN_X1(x), SCREEN_Y(y0), SCREEN_Y(y1 - y0));
-        gfx_VertLine(SCREEN_X2(x), SCREEN_Y(y0), SCREEN_Y(y1 - y0));
+        gfx_VertLine(SCREEN_X(x), SCREEN_Y(y0), SCREEN_Y(y1 - y0));
     } else {
-        gfx_VertLine(SCREEN_X1(x), SCREEN_Y(y1), SCREEN_Y(y0 - y1));
-        gfx_VertLine(SCREEN_X2(x), SCREEN_Y(y1), SCREEN_Y(y0 - y1));
+        gfx_VertLine(SCREEN_X(x), SCREEN_Y(y1), SCREEN_Y(y0 - y1));
     }
 }
 
@@ -208,8 +189,7 @@ void map(int cell_x, int cell_y, int sx, int sy, uint8_t cell_w, uint8_t cell_h,
             uint8_t tile = tilemap[x + cell_x + (y + cell_y) * 128];
             // I don't think this is how the PICO-8 actually handles the layers argument but whatevs
             if(tile && fget(tile, layers)) {
-                gfx_TransparentSprite(atlas_tiles[tile], SCREEN_X1(sx + x * 8), SCREEN_Y(sy + y * 8));
-                gfx_TransparentSprite(atlas_tiles[tile], SCREEN_X2(sx + x * 8), SCREEN_Y(sy + y * 8));
+                gfx_TransparentSprite(atlas_tiles[tile], SCREEN_X(sx + x * 8), SCREEN_Y(sy + y * 8));
             }
         }
     }
@@ -221,6 +201,7 @@ void spr(uint8_t n, int x, int y) {
 }
 
 void spr(uint8_t n, int x, int y, uint8_t w, uint8_t h, bool flip_x, bool flip_y) {
+    (void)w,(void)h;
     profiler_add(spr);
     gfx_sprite_t *sprite = atlas_tiles[n];
     gfx_TempSprite(temp, 8, 8);
@@ -238,8 +219,7 @@ void spr(uint8_t n, int x, int y, uint8_t w, uint8_t h, bool flip_x, bool flip_y
         }
     }
     // todo: both?
-    gfx_TransparentSprite(temp, SCREEN_X1(x), SCREEN_Y(y));
-    gfx_TransparentSprite(temp, SCREEN_X2(x), SCREEN_Y(y));
+    gfx_TransparentSprite(temp, SCREEN_X(x), SCREEN_Y(y));
     profiler_end(spr);
 }
 

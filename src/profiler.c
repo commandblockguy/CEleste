@@ -41,6 +41,7 @@ void profiler_print() {
     profiler_field_last(draw, 0);
     profiler_field_last(spr, 0);
     profiler_field_last(map, 0);
+    profiler_field_last(deinterlace, 0);
     profiler_field_last(tilemap_1, 0);
     profiler_field_last(tilemap_2, 0);
     profiler_field_last(tilemap_3, 0);
@@ -56,6 +57,7 @@ void profiler_print() {
     profiler_field_average(draw, 0);
     profiler_field_average(spr, 0);
     profiler_field_average(map, 0);
+    profiler_field_average(deinterlace, 0);
     profiler_field_average(tilemap_1, 0);
     profiler_field_average(tilemap_2, 0);
     profiler_field_average(tilemap_3, 0);
