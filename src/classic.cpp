@@ -59,7 +59,7 @@ void _init() {
         cloud.w = 32 + rnd(32);
     }
 
-    for(Particle &p : particles) {
+    for(Particle &p: particles) {
         p.x = rnd(SP(128));
         p.y = rnd(SP(128));
         p.s = 0 + rnd(SP(5)) / 4;
@@ -676,7 +676,7 @@ void FlyFruit::draw() {
             off = (1 + max(0, sign(y - start))) * 4;
         }
     } else {
-        off=(off+1)%12;
+        off = (off + 1) % 12;
     }
     spr(45 + off / 4, x - 6, y - 2, 1, 1, true, false);
     spr(sprite, x, y);
@@ -913,7 +913,7 @@ void Orb::draw() {
         int off = frames * (1 << 19);
         for(int i = 0; i <= 7; i++) {
             draw_plus(x + 4 + cos(off + i * (1 << 21)) * 8 / TRIG_SCALE,
-                     y + 4 + sin(off + i * (1 << 21)) * 8 / TRIG_SCALE, 7);
+                      y + 4 + sin(off + i * (1 << 21)) * 8 / TRIG_SCALE, 7);
         }
     }
 }
@@ -980,7 +980,6 @@ void RoomTitle::draw() {
 
 Object *init_object(type type, int x, int y) {
     bool has_fruit = got_fruit[level_index()];
-    // todo: populate
     switch(type) {
         case PLAYER_SPAWN:
             return new PlayerSpawn(x, y);
@@ -1021,7 +1020,7 @@ Object::Object(int x, int y) {
     collideable = true;
     solids = true;
 
-    sprite = 0; // todo
+    sprite = 0;
     flip = {.x=false, .y=false};
 
     this->x = x;
@@ -1146,12 +1145,12 @@ void Player::kill() {
     shake = 10;
     delete this;
     dead_particle_timer = 10;
-    for(int dir=0; dir <= 7; dir++) {
+    for(int dir = 0; dir <= 7; dir++) {
         DeadParticle &p = dead_particles[dir];
-        p.x=SP(x+4);
-        p.y=SP(y+4);
-        p.spd.x=sin(dir * (1 << 21))*3;
-        p.spd.y=cos(dir * (1 << 21))*3;
+        p.x = SP(x + 4);
+        p.y = SP(y + 4);
+        p.spd.x = sin(dir * (1 << 21)) * 3;
+        p.spd.y = cos(dir * (1 << 21)) * 3;
     }
     restart_room();
 }
@@ -1393,11 +1392,11 @@ void _draw() {
 
     // credits
     if(is_title()) {
-        // todo: keys
-        print("x+c", 58, 80, 5);
-        print("matt thorson", 42, 96, 5);
-        print("noel berry", 46, 102, 5);
-        // todo: porting credits
+        print("2nd+alpha", 46, 72, 5);
+        print("matt thorson", 42, 84, 5);
+        print("noel berry", 46, 90, 5);
+        print("ce port:", 48, 102, 5);
+        print("john cesarz", 42, 108, 5);
     }
 
     if(level_index() == 30) {
