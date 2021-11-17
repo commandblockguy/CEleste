@@ -36,6 +36,12 @@ struct Particle {
     int c;
 };
 
+struct DeadParticle {
+    subpixel x;
+    subpixel y;
+    vec2s spd;
+};
+
 enum type {
     PLAYER_SPAWN = 1,
     SPRING = 18,

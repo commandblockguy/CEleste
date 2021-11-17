@@ -18,6 +18,8 @@ struct vec2i room = {0, 0};
 tinystl::vector<Object *> objects = {};
 Cloud clouds[NUM_CLOUDS];
 Particle particles[25];
+DeadParticle dead_particles[8];
+int dead_particle_timer;
 
 Player *player = nullptr;
 
@@ -66,6 +68,8 @@ void _init() {
         p.c = 6 + rnd(1);
     }
 
+    dead_particle_timer = 0;
+
     title_screen();
 }
 
@@ -101,11 +105,6 @@ int level_index() {
 bool is_title() {
     return level_index() == 31;
 }
-
-
-// effects //
-
-// dead_particles = {}
 
 // player entity //
 ///////////////////
@@ -1143,19 +1142,14 @@ void Player::kill() {
     deaths += 1;
     shake = 10;
     delete this;
-//    dead_particles={};
-//    for(int dir=0; dir <= 7; dir++) {
-//        float angle=(dir/8.0);
-//        add(dead_particles,{
-//            x=obj->x+4,
-//            y=obj->y+4,
-//            t=10,
-//            spd={
-//                x=sin(angle)*3,
-//                y=cos(angle)*3
-//            }
-//        })
-//    }
+    dead_particle_timer = 10;
+    for(int dir=0; dir <= 7; dir++) {
+        DeadParticle &p = dead_particles[dir];
+        p.x=SP(x+4);
+        p.y=SP(y+4);
+        p.spd.x=sin(dir * (1 << 21))*3;
+        p.spd.y=cos(dir * (1 << 21))*3;
+    }
     restart_room();
 }
 
@@ -1383,13 +1377,16 @@ void _draw() {
 #endif
 
     // dead particles
-/*    foreach(dead_particles, function(p)
-        p.x += p.spd.x
-        p.y += p.spd.y
-        p.t -=1
-        if (p.t <= 0 ) { del(dead_particles,p) }
-        rectfill(p.x-p.t/5,p.y-p.t/5,p.x+p.t/5,p.y+p.t/5,14+p.t%2)
-    })*/
+    if(dead_particle_timer) {
+        for(DeadParticle &p: dead_particles) {
+            p.x += p.spd.x;
+            p.y += p.spd.y;
+            rectfill(PIX(p.x) - dead_particle_timer / 5, PIX(p.y) - dead_particle_timer / 5,
+                     PIX(p.x) + dead_particle_timer / 5, PIX(p.y) + dead_particle_timer / 5,
+                     14 + dead_particle_timer % 2);
+        }
+        dead_particle_timer--;
+    }
 
     // credits
     if(is_title()) {
