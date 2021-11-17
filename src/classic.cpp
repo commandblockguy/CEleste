@@ -813,6 +813,7 @@ void Platform::draw() {
 }
 
 Message::Message(int x, int y) : Object(x, y) {
+    index = 0;
     type = MESSAGE;
 }
 
@@ -823,9 +824,10 @@ void Message::draw() {
             index += 1;
             // sfx deleted here
         }
-        vec2i off = {x = 8, y = 96};
+        vec2i off = {.x = 8, .y = 96};
         for(unsigned i = 0; i < index / 2; i++) {
             if(text[i] != '#') {
+                // todo: only one rectangle per line?
                 rectfill(off.x - 2, off.y - 2, off.x + 7, off.y + 6, 7);
                 print(text[i], off.x, off.y, 0);
                 off.x += 5;

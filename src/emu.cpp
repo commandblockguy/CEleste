@@ -86,7 +86,7 @@ void print(const char *str, int x, int y, uint8_t col) {
 
 void print(char chr, int x, int y, uint8_t col) {
     color(col);
-    fontlib_SetCursorPosition(x, y);
+    fontlib_SetCursorPosition(SCREEN_X(x - 1), SCREEN_Y(y));
     fontlib_DrawGlyph(chr);
 }
 
