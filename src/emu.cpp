@@ -182,16 +182,41 @@ bool fget(uint8_t tile, uint8_t flag) {
     return (mask[tile] & (1 << flag)) != 0;
 }
 
-void map(int cell_x, int cell_y, int sx, int sy, uint8_t cell_w, uint8_t cell_h, uint8_t layers) {
-    profiler_add(map);
-    for(int y = 0; y < cell_h; y++) {
-        for(int x = 0; x < cell_w; x++) {
+gfx_rletsprite_t *render_map(int cell_x, int cell_y, uint8_t layers) {
+    gfx_SetColor(0);
+    gfx_FillRectangle_NoClip(LCD_WIDTH / 2, 0, 128, 128);
+    for(int y = 0; y < 16; y++) {
+        for(int x = 0; x < 16; x++) {
             uint8_t tile = tilemap[x + cell_x + (y + cell_y) * 128];
             // I don't think this is how the PICO-8 actually handles the layers argument but whatevs
             if(tile && fget(tile, layers)) {
-                gfx_TransparentSprite(atlas_tiles[tile], SCREEN_X(sx + x * 8), SCREEN_Y(sy + y * 8));
+                gfx_TransparentSprite_NoClip(atlas_tiles[tile], LCD_WIDTH / 2 + x * 8, y * 8);
             }
         }
+    }
+    auto *sprite = (gfx_sprite_t*)&gfx_vbuffer[128][0];
+    sprite->width = 128;
+    sprite->height = 128;
+    gfx_GetSprite(sprite, LCD_WIDTH / 2, 0);
+    return gfx_ConvertMallocRLETSprite(sprite);
+}
+
+void map(int cell_x, int cell_y, int sx, int sy, uint8_t cell_w, uint8_t cell_h, uint8_t layers) {
+    profiler_add(map);
+    static struct {
+        int x;
+        int y;
+        gfx_rletsprite_t *sprite;
+    } cache[3] = {};
+    auto entry = &cache[layers - 1];
+    if(entry->x != cell_x || entry->y != cell_y || !entry->sprite) {
+        entry->x = cell_x;
+        entry->y = cell_y;
+        free(entry->sprite);
+        entry->sprite = render_map(cell_x, cell_y, layers);
+    }
+    if(entry->sprite) {
+        gfx_RLETSprite(entry->sprite, SCREEN_X(sx), SCREEN_Y(sy));
     }
     profiler_end(map);
 }
