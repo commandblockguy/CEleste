@@ -50,6 +50,7 @@ static uint8_t font_data[] = {
 };
 
 void init() {
+    kb_SetMode(MODE_3_CONTINUOUS);
     gfx_ZeroScreen();
     gfx_SetDrawBuffer();
     gfx_ZeroScreen();
@@ -68,7 +69,6 @@ void update() {
     timer_Set(1, 0);
     profiler_add(total);
     do {
-        kb_Scan();
         if(kb_IsDown(kb_KeyGraph)) profiler_print();
         if(kb_IsDown(kb_KeyClear)) return;
     } while(FRAMESKIP && timerOffset + timer_Get(1) < 0);
@@ -83,8 +83,6 @@ void update() {
         // draw
         _draw();
         gfx_SetColor(0);
-        gfx_FillRectangle_NoClip(0, 0, BASE_X / 2, LCD_HEIGHT / 2);
-        gfx_FillRectangle_NoClip(BASE_X / 2 + 128, 0, BASE_X / 2, LCD_HEIGHT / 2);
         gfx_FillRectangle_NoClip(0, 0, 16, 12);
         gfx_SetTextFGColor(0x77);
         uint24_t t = timer_Get(1) / 33;
@@ -92,7 +90,7 @@ void update() {
         gfx_PrintUInt(t, 1);
         profiler_add(deinterlace);
         for(uint8_t y = 0; y < LCD_HEIGHT / 2; y++) {
-            memcpy(&gfx_vbuffer[y][LCD_WIDTH / 2], &gfx_vbuffer[y][0], LCD_WIDTH / 2);
+            memcpy(&gfx_vbuffer[y][LCD_WIDTH / 2 + BASE_X / 2], &gfx_vbuffer[y][BASE_X / 2], LCD_WIDTH / 2 - BASE_X);
         }
         profiler_end(deinterlace);
         gfx_SwapDraw();
