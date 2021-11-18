@@ -14,23 +14,31 @@ extern "C" {
 
 #if USE_PROFILER
 
+#define PROFILER_ENTRIES \
+        PROFILER_ENTRY(total, 0) \
+        PROFILER_ENTRY(draw, 1) \
+        PROFILER_ENTRY(spr, 2) \
+        PROFILER_ENTRY(map, 2) \
+        PROFILER_ENTRY(tilemap_1, 3) \
+        PROFILER_ENTRY(tilemap_2, 3) \
+        PROFILER_ENTRY(tilemap_3, 3) \
+        PROFILER_ENTRY(obj_draw, 2)  \
+        PROFILER_ENTRY(player_draw, 3) \
+        PROFILER_ENTRY(particles, 2) \
+        PROFILER_ENTRY(clouds, 2) \
+        PROFILER_ENTRY(deinterlace, 2) \
+        PROFILER_ENTRY(update, 1) \
+        PROFILER_ENTRY(collide_player, 2) \
+        PROFILER_ENTRY(collide_other, 2) \
+        PROFILER_ENTRY(obj_update, 2) \
+        PROFILER_ENTRY(player_update, 3)
+
+
 union profiler_set {
     struct {
-        unsigned int total;
-        unsigned int update;
-        unsigned int draw;
-        unsigned int spr;
-        unsigned int map;
-        unsigned int deinterlace;
-        unsigned int tilemap_1;
-        unsigned int tilemap_2;
-        unsigned int tilemap_3;
-        unsigned int obj_update;
-        unsigned int obj_draw;
-        unsigned int player_update;
-        unsigned int player_draw;
-        unsigned int particles;
-        unsigned int clouds;
+#define PROFILER_ENTRY(name, depth) unsigned int name;
+        PROFILER_ENTRIES
+#undef PROFILER_ENTRY
     };
     unsigned int array[0];
 };

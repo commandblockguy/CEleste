@@ -1055,26 +1055,32 @@ bool Object::is_ice(int ox, int oy) {
 }
 
 Object *Object::collide(enum type type, int ox, int oy) {
+    profiler_add(collide_other);
     for(Object *other: objects) {
         if(other != nullptr and other->type == type and other != this and other->collideable and
            other->x + other->hitbox.x + other->hitbox.w > x + hitbox.x + ox and
            other->y + other->hitbox.y + other->hitbox.h > y + hitbox.y + oy and
            other->x + other->hitbox.x < x + hitbox.x + hitbox.w + ox and
            other->y + other->hitbox.y < y + hitbox.y + hitbox.h + oy) {
+            profiler_end(collide_other);
             return other;
         }
     }
+    profiler_end(collide_other);
     return nullptr;
 }
 
 Player *Object::collide_player(int ox, int oy) {
+    profiler_add(collide_player);
     if(player != nullptr and player != this and
        player->x + 1 + 6 > x + hitbox.x + ox and
        player->y + 3 + 5 > y + hitbox.y + oy and
        player->x + 1 < x + hitbox.x + hitbox.w + ox and
        player->y + 3 < y + hitbox.y + hitbox.h + oy) {
+        profiler_end(collide_player);
         return player;
     }
+    profiler_end(collide_player);
     return nullptr;
 }
 
