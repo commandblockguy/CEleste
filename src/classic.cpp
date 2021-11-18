@@ -800,7 +800,7 @@ void Platform::update() {
         x = -16;
     }
     if(not check_player(0, 0)) {
-        Object *hit = collide(PLAYER, 0, -1);
+        Player *hit = collide_player(0, -1);
         if(hit != nullptr) {
             hit->move_x(x - last, 1);
         }
@@ -1093,21 +1093,28 @@ bool Object::check_player(int ox, int oy) {
 }
 
 void Object::move(subpixel ox, subpixel oy) {
-    int amount;
-    // [x] get move amount
-    rem.x += ox;
-    amount = PIX(rem.x + SP(0.5));
-    rem.x -= SP(amount);
-    move_x(amount, 0);
+    profiler_add(move);
+    if(ox) {
+        // [x] get move amount
+        rem.x += ox;
+        int amount = PIX(rem.x + SP(0.5));
+        rem.x -= SP(amount);
+        move_x(amount, 0);
+    }
 
-    // [y] get move amount
-    rem.y += oy;
-    amount = PIX(rem.y + SP(0.5));
-    rem.y -= SP(amount);
-    move_y(amount);
+    if(oy) {
+        // [y] get move amount
+        rem.y += oy;
+        int amount = PIX(rem.y + SP(0.5));
+        rem.y -= SP(amount);
+        move_y(amount);
+    }
+    profiler_end(move);
 }
 
 void Object::move_x(int amount, int start) {
+    if(!amount) return;
+    profiler_add(move_x);
     if(solids) {
         int step = sign(amount);
         for(int i = start; i <= abs(amount); i++) {
@@ -1122,9 +1129,12 @@ void Object::move_x(int amount, int start) {
     } else {
         x += amount;
     }
+    profiler_end(move_x);
 }
 
 void Object::move_y(int amount) {
+    if(!amount) return;
+    profiler_add(move_y);
     if(solids) {
         int step = sign(amount);
         for(int i = 0; i <= abs(amount); i++) {
@@ -1139,6 +1149,7 @@ void Object::move_y(int amount) {
     } else {
         y += amount;
     }
+    profiler_end(move_y);
 }
 
 Object::~Object() {

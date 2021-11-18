@@ -28,6 +28,9 @@ extern "C" {
         PROFILER_ENTRY(clouds, 2) \
         PROFILER_ENTRY(deinterlace, 2) \
         PROFILER_ENTRY(update, 1) \
+        PROFILER_ENTRY(move, 2) \
+        PROFILER_ENTRY(move_x, 3) \
+        PROFILER_ENTRY(move_y, 3) \
         PROFILER_ENTRY(collide_player, 2) \
         PROFILER_ENTRY(collide_other, 2) \
         PROFILER_ENTRY(obj_update, 2) \
