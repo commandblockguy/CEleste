@@ -58,6 +58,7 @@ void _init() {
         cloud.y = rnd(128);
         cloud.spd = 1 + rnd(4);
         cloud.w = 32 + rnd(32);
+        cloud.h = 4 + (12 - cloud.w * 3 / 16);
     }
 
     for(Particle &p: particles) {
@@ -1343,7 +1344,7 @@ void _draw() {
     if(not is_title()) {
         for(Cloud &c: clouds) {
             c.x += c.spd;
-            rectfill(c.x, c.y, c.x + c.w, c.y + 4 + (1 - c.w / 64) * 12, new_bg ? 14 : 1);
+            rectfill(c.x, c.y, c.x + c.w, c.y + c.h, new_bg ? 14 : 1);
             if(c.x > 128) {
                 c.x = -c.w;
                 c.y = rnd(128 - 8);

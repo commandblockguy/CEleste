@@ -22,9 +22,10 @@ struct vec2s {
 
 struct Cloud {
     int x;
-    int y;
-    int spd;
-    int w;
+    uint8_t y;
+    uint8_t spd;
+    uint8_t w;
+    uint8_t h;
 };
 
 struct Particle {
