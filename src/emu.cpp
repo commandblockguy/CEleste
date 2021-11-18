@@ -206,7 +206,7 @@ gfx_rletsprite_t *render_map(int cell_x, int cell_y, uint8_t layers) {
     return gfx_ConvertMallocRLETSprite(sprite);
 }
 
-void map(int cell_x, int cell_y, int sx, int sy, uint8_t cell_w, uint8_t cell_h, uint8_t layers) {
+void map(int cell_x, int cell_y, int sx, int sy, uint8_t layers) {
     profiler_add(map);
     static struct {
         int x;

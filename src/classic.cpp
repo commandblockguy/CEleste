@@ -10,6 +10,7 @@
 
 // ~celeste~
 // matt thorson + noel berry
+// ce port by john cesarz
 
 // globals //
 /////////////
@@ -1372,7 +1373,7 @@ void _draw() {
 
     profiler_add(tilemap_1);
     // draw bg terrain
-    map(room.x * 16, room.y * 16, 0, 0, 16, 16, 2);
+    map(room.x * 16, room.y * 16, 0, 0, 2);
     profiler_end(tilemap_1);
 
     profiler_add(obj_draw);
@@ -1387,7 +1388,7 @@ void _draw() {
     profiler_add(tilemap_2);
     // draw terrain
     int off = is_title() ? -4 : 0;
-    map(room.x * 16, room.y * 16, off, 0, 16, 16, 1);
+    map(room.x * 16, room.y * 16, off, 0, 1);
     profiler_end(tilemap_2);
 
     profiler_add(obj_draw);
@@ -1401,7 +1402,7 @@ void _draw() {
 
     profiler_add(tilemap_3);
     // draw fg terrain
-    map(room.x * 16, room.y * 16, 0, 0, 16, 16, 3);
+    map(room.x * 16, room.y * 16, 0, 0, 3);
     profiler_end(tilemap_3);
 
     profiler_add(particles);
