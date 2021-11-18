@@ -21,7 +21,8 @@
 #define SCREEN_X(x0) ((x0) + offset.x)
 #define SCREEN_Y(y0) ((y0) + offset.y)
 
-#define FRAMESKIP 0
+#define FRAMESKIP 1
+#define FRAME_TIMER 0
 
 static struct {
     int x;
@@ -68,10 +69,6 @@ void init() {
 void update() {
     timer_Set(1, 0);
     profiler_add(total);
-    do {
-        if(kb_IsDown(kb_KeyGraph)) profiler_print();
-        if(kb_IsDown(kb_KeyClear)) return;
-    } while(FRAMESKIP && timerOffset + timer_Get(1) < 0);
 
     gameFrame++;
 #if FRAMESKIP
@@ -82,20 +79,26 @@ void update() {
     if(freeze <= 0 && (!FRAMESKIP || timerOffset < 32768 / 30)) {
         // draw
         _draw();
+        profiler_add(deinterlace);
+        for(uint8_t y = 0; y < LCD_HEIGHT / 2; y++) {
+            memcpy(&gfx_vbuffer[y][LCD_WIDTH / 2 + BASE_X / 2], &gfx_vbuffer[y][BASE_X / 2], LCD_WIDTH / 2 - BASE_X);
+        }
+        profiler_end(deinterlace);
+#if FRAME_TIMER
         gfx_SetColor(0);
         gfx_FillRectangle_NoClip(0, 0, 16, 12);
         gfx_SetTextFGColor(0x77);
         uint24_t t = timer_Get(1) / 33;
         gfx_SetTextXY(0, 0);
         gfx_PrintUInt(t, 1);
-        profiler_add(deinterlace);
-        for(uint8_t y = 0; y < LCD_HEIGHT / 2; y++) {
-            memcpy(&gfx_vbuffer[y][LCD_WIDTH / 2 + BASE_X / 2], &gfx_vbuffer[y][BASE_X / 2], LCD_WIDTH / 2 - BASE_X);
-        }
-        profiler_end(deinterlace);
+#endif
         gfx_SwapDraw();
     }
     profiler_end(total);
+    do {
+        if(kb_IsDown(kb_KeyGraph)) profiler_print();
+        if(kb_IsDown(kb_KeyClear)) return;
+    } while(FRAMESKIP && (int)(timerOffset + timer_Get(1)) < 0);
     profiler_tick();
     timerOffset += timer_Get(1);
 }
