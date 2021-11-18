@@ -2,6 +2,12 @@
 
 #include <cstdint>
 
+extern uint8_t div256_24_buf[4];
+inline uint24_t div256_24(uint24_t num) {
+    *(uint24_t*)div256_24_buf = num;
+    return *(uint24_t*)(div256_24_buf + 1);
+}
+
 typedef int subpixel;
 #define SUBPIXEL_SCALE 256
 #define SP(x) ((int)((x) * SUBPIXEL_SCALE))

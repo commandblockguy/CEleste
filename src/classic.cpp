@@ -1405,20 +1405,17 @@ void _draw() {
     profiler_end(tilemap_3);
 
     profiler_add(particles);
-#if 0
-    // todo: optimize
     // particles
     for(Particle &p : particles) {
         p.x += p.spd;
         p.y += sin(p.off);
         p.off += min(UINT24_MAX / 20, p.spd * (1 << 11));
-        rectfill(PIX(p.x), PIX(p.y), PIX(p.x + p.s), PIX(p.y + p.s), p.c);
+        rectfill(div256_24(p.x), div256_24(p.y), div256_24(p.x + p.s), div256_24(p.y + p.s), p.c);
         if(p.x > SP(128 + 4)) {
             p.x = SP(-4);
             p.y = rnd(SP(128));
         }
     }
-#endif
 
     // dead particles
     if(dead_particle_timer) {
@@ -1537,3 +1534,5 @@ bool spikes_at(int x, int y, int w, int h, subpixel xspd, subpixel yspd) {
     }
     return false;
 }
+
+uint8_t div256_24_buf[4];
