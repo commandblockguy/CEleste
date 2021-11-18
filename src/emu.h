@@ -40,6 +40,8 @@ int rnd(int max);
 int min(int a, int b);
 int max(int a, int b);
 
+bool has_cheats();
+
 void gen_lookups();
 
 #define DEGREES_TO_ANGLE(deg) ((unsigned)((float)(deg) * (1 << (24 - 3)) / 45))

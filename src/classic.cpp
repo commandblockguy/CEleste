@@ -1282,8 +1282,8 @@ void _update() {
         }
     }
 
-    if(kb_IsDown(kb_KeyYequ)) {
-        next_room();
+    if(has_cheats()) {
+        if(kb_IsDown(kb_KeyYequ) && !is_title()) next_room();
     }
 
     profiler_add(obj_update);
