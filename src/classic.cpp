@@ -9,7 +9,7 @@
 #include "profiler.h"
 
 // ~celeste~
-// matt thorson + noel berry
+// maddy thorson + noel berry
 // ce port by john cesarz
 
 // globals //
@@ -1434,7 +1434,7 @@ void _draw() {
     // credits
     if(is_title()) {
         print("2nd+alpha", 46, 72, 5);
-        print("matt thorson", 42, 84, 5);
+        print("maddy thorson", 40, 84, 5);
         print("noel berry", 46, 90, 5);
         print("ce port:", 48, 102, 5);
         print("john cesarz", 42, 108, 5);

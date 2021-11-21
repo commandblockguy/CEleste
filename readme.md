@@ -2,7 +2,7 @@
 
 A Celeste Classic port for the TI-84+CE and TI-83PCE graphing calculators.
 
-![Screenshot](https://www.cemetech.net/media/archives/screenshots/2021/11/celeste6.png)
+![Screenshot](screenshot.png)
 
 ### Usage
 *(A video tutorial for the following steps is also available
