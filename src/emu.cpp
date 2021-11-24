@@ -15,8 +15,8 @@
 #include "gfx/gfx.h"
 #include "profiler.h"
 
-#define BASE_X ((LCD_WIDTH - 128 * 2) / 2)
-#define BASE_Y ((LCD_HEIGHT - 128 * 2) / 2)
+#define BASE_X ((LCD_WIDTH - 128 * 2) / 4)
+#define BASE_Y ((LCD_HEIGHT - 128 * 2) / 4)
 
 #define SCREEN_X(x0) ((x0) + offset.x)
 #define SCREEN_Y(y0) ((y0) + offset.y)
@@ -27,7 +27,7 @@
 static struct {
     int x;
     int y;
-} offset = {BASE_X / 2, BASE_Y / 2};
+} offset = {BASE_X, BASE_Y};
 
 static int gameFrame = 0;
 static int timerOffset = 0;
@@ -57,8 +57,8 @@ void init() {
     gfx_SetDrawBuffer();
     gfx_ZeroScreen();
     gfx_SetPalette(mypalette, sizeof mypalette, 0);
-    gfx_SetClipRegion(BASE_X / 2, 0,
-                      BASE_X / 2 + 128, LCD_HEIGHT);
+    gfx_SetClipRegion(BASE_X, 0,
+                      BASE_X + 128, LCD_HEIGHT);
     lcd_Control = 0x13925; // 4 bpp mode
     fontlib_SetFont(reinterpret_cast<const fontlib_font_t *>(font_data), static_cast<fontlib_load_options_t>(0));
     fontlib_SetTransparency(true);
@@ -82,7 +82,7 @@ void update() {
         _draw();
         profiler_add(deinterlace);
         for(uint8_t y = 0; y < LCD_HEIGHT / 2; y++) {
-            memcpy(&gfx_vbuffer[y][LCD_WIDTH / 2 + BASE_X / 2], &gfx_vbuffer[y][BASE_X / 2], LCD_WIDTH / 2 - BASE_X);
+            memcpy(&gfx_vbuffer[y][LCD_WIDTH / 2 + BASE_X], &gfx_vbuffer[y][BASE_X], LCD_WIDTH / 2 - BASE_X * 2);
         }
         profiler_end(deinterlace);
 #if FRAME_TIMER
@@ -113,7 +113,17 @@ void color(uint8_t c) {
 }
 
 void print(const char *str) {
+    int orig_x = fontlib_GetCursorX();
     fontlib_DrawString(str);
+    if(orig_x < BASE_X) {
+        gfx_SetColor(0);
+        gfx_FillRectangle_NoClip(orig_x, fontlib_GetCursorY(), BASE_X - orig_x, 5);
+    }
+    int new_x = fontlib_GetCursorX();
+    if(new_x > BASE_X + 128) {
+        gfx_SetColor(0);
+        gfx_FillRectangle_NoClip(BASE_X + 128, fontlib_GetCursorY(), new_x - BASE_X - 128, 5);
+    }
 }
 
 void print(const char *str, int x, int y, uint8_t col) {
@@ -179,8 +189,8 @@ void camera() {
 }
 
 void camera(int x, int y) {
-    offset.x = x + BASE_X / 2;
-    offset.y = y + BASE_Y / 2;
+    offset.x = x + BASE_X;
+    offset.y = y + BASE_Y;
 }
 
 bool fget(uint8_t tile, uint8_t flag) {
