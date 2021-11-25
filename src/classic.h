@@ -23,7 +23,7 @@ struct vec2s {
     subpixel y;
 };
 
-#define NUM_FRUITS 29
+#define NUM_FRUITS 30
 #define NUM_CLOUDS 16
 
 struct Cloud {
