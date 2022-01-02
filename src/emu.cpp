@@ -35,6 +35,9 @@ static struct {
 static int gameFrame = 0;
 static int timerOffset = 0;
 
+static FILE *tas;
+static uint8_t tas_keys;
+
 const uint8_t mask[] = {
         0, 0, 0,  0,  0,  0,  0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
         4, 2, 0,  0,  0,  0,  0, 0, 0, 0, 0, 2, 0, 0, 0, 0,
@@ -53,7 +56,7 @@ static uint8_t font_data[] = {
 #include "font.inc"
 };
 
-void init() {
+void init(FILE *_tas) {
     kb_SetMode(MODE_3_CONTINUOUS);
     gfx_ZeroScreen();
     gfx_SetDrawBuffer();
@@ -67,6 +70,10 @@ void init() {
     gen_lookups();
     profiler_init();
     FILE *save = fopen(SAVE_NAME, "r");
+    if(!save) {
+        tas = _tas;
+        if(tas) dbg_printf("loaded tas\n");
+    }
     _init(save);
     if(save) {
         fclose(save);
@@ -82,6 +89,9 @@ void update() {
 #if FRAMESKIP
     timerOffset -= 32768 / 30;
 #endif
+    if(tas && player) {
+        if(!fread(&tas_keys, 1, 1, tas)) tas_keys = 0;
+    }
     _update();
     practice_update();
 
@@ -303,9 +313,16 @@ void pal(int c0, int c1, int p) {
 
 
 bool btn(uint8_t index) {
-    kb_lkey_t keys[6] = {kb_KeyLeft, kb_KeyRight, kb_KeyUp, kb_KeyDown, kb_Key2nd, kb_KeyAlpha};
-    if(index > 5) return false;
-    return kb_IsDown(keys[index]);
+    if(tas) {
+        if(is_title() && index == 4) {
+            return true;
+        }
+        return (tas_keys >> index) & 1;
+    } else {
+        kb_lkey_t keys[6] = {kb_KeyLeft, kb_KeyRight, kb_KeyUp, kb_KeyDown, kb_KeyPrgm, kb_KeySto};
+        if(index > 5) return false;
+        return kb_IsDown(keys[index]);
+    }
 }
 
 int rnd(int max) {

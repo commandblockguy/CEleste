@@ -1,10 +1,11 @@
 #pragma once
 
 #include <cstdint>
+#include <cstdio>
 
 #include "gfx/atlas.h"
 
-void init();
+void init(FILE *tas);
 void update();
 void save_game();
 

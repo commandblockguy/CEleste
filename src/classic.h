@@ -132,6 +132,7 @@ public:
 
     void kill();
 };
+extern Player *player;
 
 class PlayerSpawn : public Object {
 public:

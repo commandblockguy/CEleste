@@ -3,10 +3,11 @@
 #include <tice.h>
 #include "emu.h"
 
-int main(void)
+int main()
 {
     gfx_Begin();
-    init();
+    FILE *tas = fopen("TAS", "r");
+    init(tas);
     timer_Enable(1, TIMER_32K, TIMER_NOINT, TIMER_UP);
     do {
         update();
@@ -15,5 +16,6 @@ int main(void)
         save_game();
     }
     gfx_End();
+    if(tas) fclose(tas);
     return 0;
 }
