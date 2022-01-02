@@ -6,6 +6,7 @@
 
 void init();
 void update();
+void save_game();
 
 extern const uint8_t tilemap[64 * 128];
 

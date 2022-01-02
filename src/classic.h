@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include <cstdio>
 
 extern uint8_t div256_24_buf[4];
 inline uint24_t div256_24(uint24_t num) {
@@ -279,7 +280,7 @@ public:
     void draw() override;
 };
 
-void _init();
+void _init(FILE *save);
 void _update();
 void _draw();
 
@@ -306,5 +307,8 @@ int clamp(int val, int a, int b);
 int appr(int val, int target, int amount);
 int sign(int v);
 bool maybe();
+bool needs_save();
+void load_save(FILE *f);
+void store_save(FILE *f);
 
 extern int freeze;

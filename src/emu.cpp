@@ -24,6 +24,8 @@
 #define FRAMESKIP 1
 #define FRAME_TIMER 0
 
+#define SAVE_NAME "CelesteS"
+
 static struct {
     int x;
     int y;
@@ -64,7 +66,12 @@ void init() {
     fontlib_SetTransparency(true);
     gen_lookups();
     profiler_init();
-    _init();
+    FILE *save = fopen(SAVE_NAME, "r");
+    _init(save);
+    if(save) {
+        fclose(save);
+        remove(SAVE_NAME);
+    }
 }
 
 void update() {
@@ -105,6 +112,14 @@ void update() {
     } while(FRAMESKIP && (int)(timerOffset + timer_Get(1)) < 0);
     profiler_tick();
     timerOffset += timer_Get(1);
+}
+
+void save_game() {
+    if(!needs_save()) return;
+    FILE *save = fopen("CelesteS", "w");
+    if(!save) return;
+    store_save(save);
+    fclose(save);
 }
 
 void color(uint8_t c) {

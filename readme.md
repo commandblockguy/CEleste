@@ -15,7 +15,7 @@ If this results in an error, [arTIfiCE](https://yvantt.github.io/arTIfiCE/) is
 required for your OS version.
 
 Use the arrow keys to move, 2nd to jump and alpha to dash. To exit the game, press
-the clear key.
+the clear key to save your progress, or del to exit without saving.
 
 ### Compiling
 To build this repository from source, the [CE C Toolchain](https://github.com/CE-Programming/toolchain)

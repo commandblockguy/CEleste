@@ -1,6 +1,5 @@
 #include <keypadc.h>
 #include <graphx.h>
-#include <gfx/mypalette.h>
 #include <tice.h>
 #include "emu.h"
 
@@ -11,7 +10,10 @@ int main(void)
     timer_Enable(1, TIMER_32K, TIMER_NOINT, TIMER_UP);
     do {
         update();
-    } while(!kb_IsDown(kb_KeyClear));
+    } while(!kb_IsDown(kb_KeyClear) && !kb_IsDown(kb_KeyDel));
+    if(!kb_IsDown(kb_KeyDel)) {
+        save_game();
+    }
     gfx_End();
     return 0;
 }

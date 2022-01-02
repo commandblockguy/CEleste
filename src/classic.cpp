@@ -53,7 +53,7 @@ int start_game_flash;
 int seconds;
 int minutes;
 
-void _init() {
+void _init(FILE *save) {
     for(auto &cloud: clouds) {
         cloud.x = rnd(128);
         cloud.y = rnd(128);
@@ -73,7 +73,11 @@ void _init() {
 
     dead_particle_timer = 0;
 
-    title_screen();
+    if(save) {
+        load_save(save);
+    } else {
+        title_screen();
+    }
 }
 
 void title_screen() {
@@ -1534,6 +1538,32 @@ bool spikes_at(int x, int y, int w, int h, subpixel xspd, subpixel yspd) {
         }
     }
     return false;
+}
+
+bool needs_save() {
+    return !is_title() && level_index() != 30;
+}
+
+#define TO_SERIALIZE(F) \
+    F(frames)        \
+    F(deaths)        \
+    F(max_djump)     \
+    F(new_bg)        \
+    F(seconds)       \
+    F(minutes)       \
+    F(got_fruit)     \
+    F(room.x)        \
+    F(room.y)        \
+
+#define SERIALIZE(var) fread(&(var), sizeof(var), 1, f);
+void load_save(FILE *f) {
+    TO_SERIALIZE(SERIALIZE)
+    load_room(room.x, room.y);
+}
+
+#define DESERIALIZE(var) fwrite(&(var), sizeof(var), 1, f);
+void store_save(FILE *f) {
+    TO_SERIALIZE(DESERIALIZE)
 }
 
 uint8_t div256_24_buf[4];
