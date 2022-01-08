@@ -1556,13 +1556,13 @@ bool needs_save() {
     F(room.y)        \
 
 #define SERIALIZE(var) fread(&(var), sizeof(var), 1, f);
-void load_save(FILE *f) {
+void load_save(FILE *f) __attribute__ ((optnone)) {
     TO_SERIALIZE(SERIALIZE)
     load_room(room.x, room.y);
 }
 
 #define DESERIALIZE(var) fwrite(&(var), sizeof(var), 1, f);
-void store_save(FILE *f) {
+void store_save(FILE *f) __attribute__ ((optnone)) {
     TO_SERIALIZE(DESERIALIZE)
 }
 
