@@ -7,6 +7,7 @@
 #include <keypadc.h>
 #include "emu.h"
 #include "profiler.h"
+#include "practice.h"
 
 // ~celeste~
 // maddy thorson + noel berry
@@ -133,6 +134,7 @@ Player::Player(int x, int y) : Object(x, y) {
     type = PLAYER;
     create_hair(this);
     player = this;
+    practice_on_player_spawn();
 }
 
 Player::~Player() {
@@ -336,7 +338,13 @@ void Player::update() {
     was_on_ground = on_ground;
 
     // next level
-    if(y < -4 and level_index() < 30) { next_room(); }
+    if(y < -4 and level_index() < 30) {
+        if(practice_mode) {
+            practice_on_complete();
+        } else {
+            next_room();
+        }
+    }
     profiler_end(player_update);
 }
 
@@ -946,12 +954,28 @@ void Flag::draw() {
     spr(sprite, x, y);
     if(show) {
         rectfill(32, 2, 96, 31, 0);
-        spr(26, 55, 6);
-        print("x", 64, 9, 7);
-        print_int(score);
-        draw_time(49, 16);
-        print("deaths:", 48, 24, 7);
-        print_int(deaths);
+        if(practice_mode) {
+            int total = practice_get_total_time();
+            if(total == 0) {
+                print("incomplete", 44, 16, 7);
+            } else {
+                int subsecond = (total % 60) * 5 / 3;
+                int seconds = total / 60;
+                int minutes = seconds / 60;
+                print_int(minutes, 49, 17, 7, 2);
+                print(":");
+                print_int(seconds, 2);
+                print(".");
+                print_int(subsecond, 2);
+            }
+        } else {
+            spr(26, 55, 6);
+            print("x", 64, 9, 7);
+            print_int(score);
+            draw_time(49, 16);
+            print("deaths:", 48, 24, 7);
+            print_int(deaths);
+        }
     } else if(check_player(0, 0)) {
         //sfx(55);
         sfx_timer = 30;
@@ -982,7 +1006,9 @@ void RoomTitle::draw() {
         }
         //print("---",86,64-2,13)
 
-        draw_time(4, 4);
+        if(!practice_mode) {
+            draw_time(4, 4);
+        }
     }
 }
 
@@ -1204,10 +1230,21 @@ void next_room() {
         //music(30,500,7)
     }
 
+    if(level_index() == 30) return;
+
     if(room.x == 7) {
         load_room(0, room.y + 1);
     } else {
         load_room(room.x + 1, room.y);
+    }
+}
+
+void prev_room() {
+    if(level_index() < 1) return;
+    if(room.x == 0) {
+        load_room(7, room.y - 1);
+    } else {
+        load_room(room.x - 1, room.y);
     }
 }
 
@@ -1224,6 +1261,10 @@ void load_room(uint8_t x, uint8_t y) {
     //current room
     room.x = x;
     room.y = y;
+
+    if(practice_mode && level_index() != 30) {
+        got_fruit[level_index()] = false;
+    }
 
     // entities
     for(uint8_t tx = 0; tx <= 15; tx++) {
@@ -1285,10 +1326,6 @@ void _update() {
             will_restart = false;
             load_room(room.x, room.y);
         }
-    }
-
-    if(has_cheats()) {
-        if(kb_IsDown(kb_KeyYequ) && !is_title()) next_room();
     }
 
     profiler_add(obj_update);
@@ -1545,15 +1582,16 @@ bool needs_save() {
 }
 
 #define TO_SERIALIZE(F) \
-    F(frames)        \
-    F(deaths)        \
-    F(max_djump)     \
-    F(new_bg)        \
-    F(seconds)       \
-    F(minutes)       \
-    F(got_fruit)     \
-    F(room.x)        \
-    F(room.y)        \
+    F(frames)           \
+    F(deaths)           \
+    F(max_djump)        \
+    F(new_bg)           \
+    F(seconds)          \
+    F(minutes)          \
+    F(got_fruit)        \
+    F(room.x)           \
+    F(room.y)           \
+    F(practice_mode)    \
 
 #define SERIALIZE(var) fread(&(var), sizeof(var), 1, f);
 void load_save(FILE *f) __attribute__ ((optnone)) {

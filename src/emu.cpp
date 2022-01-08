@@ -14,6 +14,7 @@
 
 #include "gfx/gfx.h"
 #include "profiler.h"
+#include "practice.h"
 
 #define BASE_X ((LCD_WIDTH - 128 * 2) / 4)
 #define BASE_Y ((LCD_HEIGHT - 128 * 2) / 4)
@@ -33,7 +34,6 @@ static struct {
 
 static int gameFrame = 0;
 static int timerOffset = 0;
-static int cheatState = 0;
 
 const uint8_t mask[] = {
         0, 0, 0,  0,  0,  0,  0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -83,10 +83,14 @@ void update() {
     timerOffset -= 32768 / 30;
 #endif
     _update();
+    practice_update();
 
     if(freeze <= 0 && (!FRAMESKIP || timerOffset < 32768 / 30)) {
         // draw
         _draw();
+        profiler_add(hud);
+        practice_draw_hud();
+        profiler_end(hud);
         profiler_add(deinterlace);
         for(uint8_t y = 0; y < LCD_HEIGHT / 2; y++) {
             memcpy(&gfx_vbuffer[y][LCD_WIDTH / 2 + BASE_X], &gfx_vbuffer[y][BASE_X], LCD_WIDTH / 2 - BASE_X * 2);
@@ -103,10 +107,7 @@ void update() {
         gfx_SwapDraw();
     }
     profiler_end(total);
-    if(kb_IsDown(kb_KeyGraph)) profiler_print();
-    if(cheatState == 0 && kb_IsDown(kb_KeyPower)) cheatState++;
-    if(cheatState == 1 && kb_IsDown(kb_KeyMath)) cheatState++;
-    if(cheatState == 2 && kb_IsDown(kb_KeySto)) cheatState++;
+    if(kb_IsDown(kb_KeyTrace)) profiler_print();
     do {
         if(kb_IsDown(kb_KeyClear)) return;
     } while(FRAMESKIP && (int)(timerOffset + timer_Get(1)) < 0);
@@ -307,10 +308,6 @@ int min(int a, int b) {
 
 int max(int a, int b) {
     return a >= b ? a : b;
-}
-
-bool has_cheats() {
-    return cheatState == 3;
 }
 
 int sin_table[TRIG_PRECISION / 4];

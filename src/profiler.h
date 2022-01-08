@@ -26,6 +26,7 @@ extern "C" {
         PROFILER_ENTRY(player_draw, 3) \
         PROFILER_ENTRY(particles, 2) \
         PROFILER_ENTRY(clouds, 2) \
+        PROFILER_ENTRY(hud, 2) \
         PROFILER_ENTRY(deinterlace, 2) \
         PROFILER_ENTRY(update, 1) \
         PROFILER_ENTRY(move, 2) \

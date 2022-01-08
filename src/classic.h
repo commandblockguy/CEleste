@@ -280,6 +280,10 @@ public:
     void draw() override;
 };
 
+extern vec2i room;
+extern int max_djump;
+extern Player *player;
+
 void _init(FILE *save);
 void _update();
 void _draw();
@@ -291,6 +295,7 @@ bool is_title();
 void load_room(uint8_t x, uint8_t y);
 void restart_room();
 void next_room();
+void prev_room();
 void create_hair(Object *obj);
 void set_hair_color(int djump);
 void draw_hair(Object *obj, int facing);
