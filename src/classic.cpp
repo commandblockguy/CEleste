@@ -150,11 +150,13 @@ void Player::update() {
     // spikes collide
     if(spikes_at(x + hitbox.x, y + hitbox.y, hitbox.w, hitbox.h, spd.x, spd.y)) {
         kill();
+        return;
     }
 
     // bottom death
     if(y > 128) {
         kill();
+        return;
     }
 
     bool on_ground = is_solid(0, 1);
@@ -1197,7 +1199,6 @@ void Player::kill() {
     //sfx(0);
     deaths += 1;
     shake = 10;
-    delete this;
     dead_particle_timer = 10;
     for(int dir = 0; dir <= 7; dir++) {
         DeadParticle &p = dead_particles[dir];
@@ -1207,6 +1208,7 @@ void Player::kill() {
         p.spd.y = cos(dir * (1 << 21)) * 3;
     }
     restart_room();
+    delete this;
 }
 
 // room functions //
