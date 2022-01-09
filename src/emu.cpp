@@ -280,6 +280,7 @@ void spr(uint8_t n, int x, int y, uint8_t w, uint8_t h, bool flip_x, bool flip_y
 }
 
 void pal() {
+    gfx_SetPalette(mypalette, sizeof mypalette, 0);
     for(uint8_t i = 0; i < 16; i++) {
         pal_map[i] = i | (i << 4);
     }
@@ -289,6 +290,15 @@ void pal() {
 void pal(int c0, int c1) {
     pal_map[c0] = c1 | (c1 << 4);
     default_pal = c0 == c1;
+}
+
+void pal(int c0, int c1, int p) {
+    if(p == 0) {
+        pal(c0, c1);
+    } else {
+        gfx_palette[c0] = mypalette[c1];
+        default_pal = c0 == c1;
+    }
 }
 
 

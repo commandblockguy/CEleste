@@ -34,6 +34,7 @@ void spr(uint8_t n, int x, int y);
 void spr(uint8_t n, int x, int y, uint8_t w, uint8_t h, bool flip_x, bool flip_y);
 void pal();
 void pal(int a, int b);
+void pal(int a, int b, int p);
 
 bool btn(uint8_t index);
 

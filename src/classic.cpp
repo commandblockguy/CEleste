@@ -1382,12 +1382,12 @@ void _draw() {
             c = 0;
         }
         if(c < 10) {
-            pal(6, c);
-            pal(12, c);
-            pal(13, c);
-            pal(5, c);
-            pal(1, c);
-            pal(7, c);
+            pal(6, c, 1);
+            pal(12, c, 1);
+            pal(13, c, 1);
+            pal(5, c, 1);
+            pal(1, c, 1);
+            pal(7, c, 1);
         }
     }
 
