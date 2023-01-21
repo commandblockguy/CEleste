@@ -403,7 +403,7 @@ PlayerSpawn::PlayerSpawn(int x, int y) : Object(x, y) {
     //sfx(4);
     sprite = 3;
     target = {.x=x, .y=y};
-    y = 128;
+    this->y = 128;
     spd.y = SP(-4);
     state = 0;
     delay = 0;
