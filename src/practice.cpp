@@ -23,7 +23,7 @@ void practice_update() {
         }
     }
     if(!practice_mode) return;
-    if(player && level_index() != 30) current_time++;
+    if(level_index() != 30) current_time++;
     if(kb_IsDown(kb_KeyYequ)) {
 //        while(kb_IsDown(kb_KeyYequ));
         prev_room();
@@ -51,7 +51,7 @@ void practice_update() {
     }
 }
 
-void practice_on_player_spawn() {
+void practice_on_load() {
     current_time = 0;
 }
 

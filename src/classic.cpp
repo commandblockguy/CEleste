@@ -134,7 +134,6 @@ Player::Player(int x, int y) : Object(x, y) {
     type = PLAYER;
     create_hair(this);
     player = this;
-    practice_on_player_spawn();
 }
 
 Player::~Player() {
@@ -1279,6 +1278,8 @@ void load_room(uint8_t x, uint8_t y) {
     if(!is_title()) {
         new RoomTitle(0, 0);
     }
+
+    practice_on_load();
 }
 
 // update function //
