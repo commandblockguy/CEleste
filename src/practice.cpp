@@ -19,6 +19,7 @@ void practice_update() {
         if(kb_IsDown(kb_KeyGraph)) {
             practice_mode = true;
             load_room(0, 0);
+            return;
         }
     }
     if(!practice_mode) return;
