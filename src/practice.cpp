@@ -80,12 +80,12 @@ void practice_draw_hud() {
     gfx_FillRectangle_NoClip(0, 0, 26, 7);
     fontlib_SetForegroundColor(0x77);
     fontlib_SetCursorPosition(1, 1);
-    if(current_time >= 100 * 60) {
+    if(current_time >= 100 * 30) {
         fontlib_DrawString("99.999");
     } else {
-        fontlib_DrawUInt(current_time / 60, 2);
+        fontlib_DrawUInt(current_time / 30, 2);
         fontlib_DrawGlyph('.');
-        fontlib_DrawUInt((current_time % 60) * 1000 / 60, 3);
+        fontlib_DrawUInt((current_time % 30) * 1000 / 30, 3);
     }
 
     // Best time (frames)

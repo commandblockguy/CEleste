@@ -961,9 +961,9 @@ void Flag::draw() {
             if(total == 0) {
                 print("incomplete", 44, 16, 7);
             } else {
-                int subsecond = (total % 60) * 5 / 3;
-                int seconds = total / 60;
-                int minutes = seconds / 60;
+                int subsecond = (total % 30) * 10 / 3;
+                int seconds = total / 30;
+                int minutes = seconds / (30 * 60);
                 print_int(minutes, 49, 17, 7, 2);
                 print(":");
                 print_int(seconds, 2);
